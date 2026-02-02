@@ -1,0 +1,48 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.so.*
+*.dylib
+
+tmp/
+# Binaries from go build
+/commit-gen
+/bin/
+/dist/
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+.coverage/
+
+# Go workspace file
+go.work
+
+# Dependency directories
+vendor/
+
+# IDE and editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Cache
+.cache/
+~/.cache/commit-gen/
+
+# Configuration
+.env
+.env.local
+config.yaml
+config.local.yaml
+
+# OS files
+Thumbs.db
+.DS_Store
