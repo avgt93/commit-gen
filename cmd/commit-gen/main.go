@@ -117,6 +117,7 @@ var configCmd = &cobra.Command{
 	Long:  `View and modify commit-gen configuration.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg := config.Get()
+
 		color.Cyan("OpenCode Configuration:")
 		fmt.Printf("  Host: %s\n", cfg.OpenCode.Host)
 		fmt.Printf("  Port: %d\n", cfg.OpenCode.Port)
