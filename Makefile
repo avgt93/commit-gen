@@ -52,7 +52,7 @@ mod-verify:
 	@echo "Verifying modules..."
 	$(GO) mod verify
 
-all: clean build test
+all: clean install test
 
 release:
 	@echo "Building cross-platform releases..."
