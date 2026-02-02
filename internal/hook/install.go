@@ -11,8 +11,8 @@ import (
 
 const hookName = "prepare-commit-msg"
 
-// hookScript is the content of the git hook
-const hookScript = `#!/bin/bash
+// hookScriptFmt is the content of the git hook (format string)
+const hookScriptFmt = `#!/bin/bash
 # commit-gen git hook
 # Auto-generates commit messages for empty commit messages
 
@@ -41,7 +41,7 @@ if [ -z "$MESSAGE" ]; then
   TMPFILE=$(mktemp)
   trap "rm -f $TMPFILE" EXIT
   
-  if commit-gen generate --hook > "$TMPFILE" 2>&1; then
+  if "%s" generate --hook > "$TMPFILE" 2>&1; then
     # Only write if we got output
     if [ -s "$TMPFILE" ]; then
       cat "$TMPFILE" > "$MESSAGE_FILE"
@@ -57,6 +57,16 @@ func Install() error {
 	root, err := git.GetRepositoryRoot()
 	if err != nil {
 		return fmt.Errorf("not in a git repository: %w", err)
+	}
+
+	// Get absolute path to the current executable
+	exe, err := os.Executable()
+	if err != nil {
+		return fmt.Errorf("failed to get executable path: %w", err)
+	}
+	exePath, err := filepath.Abs(exe)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute executable path: %w", err)
 	}
 
 	hookPath := filepath.Join(root, ".git", "hooks", hookName)
@@ -77,8 +87,11 @@ func Install() error {
 		return fmt.Errorf("hook already exists at %s (not installed by commit-gen)", hookPath)
 	}
 
+	// Format the hook script with the absolute path to the executable
+	hookContent := fmt.Sprintf(hookScriptFmt, exePath)
+
 	// Write the hook
-	if err := os.WriteFile(hookPath, []byte(hookScript), 0o755); err != nil {
+	if err := os.WriteFile(hookPath, []byte(hookContent), 0o755); err != nil {
 		return fmt.Errorf("failed to write hook: %w", err)
 	}
 
