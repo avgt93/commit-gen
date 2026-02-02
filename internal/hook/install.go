@@ -25,11 +25,11 @@ if [ "$COMMIT_SOURCE" != "" ]; then
   exit 0
 fi
 
-# Read the current message
-MESSAGE=$(cat "$MESSAGE_FILE" 2>/dev/null)
+# Read the current message and filter out comment lines (starting with #)
+MESSAGE=$(grep -v '^#' "$MESSAGE_FILE" 2>/dev/null | xargs)
 
-# Check if message is empty (only whitespace)
-if [ -z "$(echo "$MESSAGE" | xargs)" ]; then
+# Check if message is empty (only whitespace and comments)
+if [ -z "$MESSAGE" ]; then
   # Change to git root directory to ensure git commands work
   GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
   if [ -z "$GIT_ROOT" ]; then
