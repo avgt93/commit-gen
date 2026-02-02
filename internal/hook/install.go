@@ -1,0 +1,125 @@
+package hook
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/yourusername/commit-gen/internal/git"
+)
+
+const hookName = "prepare-commit-msg"
+
+// hookScript is the content of the git hook
+const hookScript = `#!/bin/bash
+# commit-gen git hook
+# Auto-generates commit messages for empty commit messages
+
+MESSAGE_FILE=$1
+COMMIT_SOURCE=$2
+SHA1=$3
+
+# Only run for normal commits (not for merge commits, etc.)
+if [ "$COMMIT_SOURCE" != "" ]; then
+  exit 0
+fi
+
+# Read the current message
+MESSAGE=$(cat "$MESSAGE_FILE" 2>/dev/null)
+
+# Check if message is empty (only whitespace)
+if [ -z "$(echo "$MESSAGE" | xargs)" ]; then
+  # Generate commit message
+  if commit-gen generate --hook > /tmp/commit-gen-msg 2>/dev/null; then
+    cat /tmp/commit-gen-msg > "$MESSAGE_FILE"
+  fi
+fi
+
+exit 0
+`
+
+// Install installs the git hook in the current repository
+func Install() error {
+	root, err := git.GetRepositoryRoot()
+	if err != nil {
+		return fmt.Errorf("not in a git repository: %w", err)
+	}
+
+	hookPath := filepath.Join(root, ".git", "hooks", hookName)
+
+	// Create hooks directory if it doesn't exist
+	hooksDir := filepath.Dir(hookPath)
+	if err := os.MkdirAll(hooksDir, 0o755); err != nil {
+		return fmt.Errorf("failed to create hooks directory: %w", err)
+	}
+
+	// Check if hook already exists
+	if _, err := os.Stat(hookPath); err == nil {
+		// Hook exists, check if it's ours
+		content, err := os.ReadFile(hookPath)
+		if err == nil && strings.Contains(string(content), "commit-gen") {
+			return fmt.Errorf("hook already installed at %s", hookPath)
+		}
+		return fmt.Errorf("hook already exists at %s (not installed by commit-gen)", hookPath)
+	}
+
+	// Write the hook
+	if err := os.WriteFile(hookPath, []byte(hookScript), 0o755); err != nil {
+		return fmt.Errorf("failed to write hook: %w", err)
+	}
+
+	return nil
+}
+
+// Uninstall removes the git hook from the current repository
+func Uninstall() error {
+	root, err := git.GetRepositoryRoot()
+	if err != nil {
+		return fmt.Errorf("not in a git repository: %w", err)
+	}
+
+	hookPath := filepath.Join(root, ".git", "hooks", hookName)
+
+	// Check if hook exists
+	if _, err := os.Stat(hookPath); os.IsNotExist(err) {
+		return fmt.Errorf("hook not found at %s", hookPath)
+	}
+
+	// Check if it's our hook
+	content, err := os.ReadFile(hookPath)
+	if err != nil {
+		return fmt.Errorf("failed to read hook: %w", err)
+	}
+
+	if !strings.Contains(string(content), "commit-gen") {
+		return fmt.Errorf("hook at %s is not a commit-gen hook", hookPath)
+	}
+
+	// Remove the hook
+	if err := os.Remove(hookPath); err != nil {
+		return fmt.Errorf("failed to remove hook: %w", err)
+	}
+
+	return nil
+}
+
+// IsInstalled checks if the hook is installed
+func IsInstalled() (bool, error) {
+	root, err := git.GetRepositoryRoot()
+	if err != nil {
+		return false, err
+	}
+
+	hookPath := filepath.Join(root, ".git", "hooks", hookName)
+
+	content, err := os.ReadFile(hookPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return strings.Contains(string(content), "commit-gen"), nil
+}

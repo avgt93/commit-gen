@@ -1,0 +1,54 @@
+BINARY_NAME=commit-gen
+GO=go
+GOFLAGS=-v
+LDFLAGS=-ldflags "-X main.version=0.1.0"
+
+.PHONY: build clean test install help run
+
+help:
+	@echo "Available targets:"
+	@echo "  make build       - Build the binary"
+	@echo "  make install     - Build and install to /usr/local/bin"
+	@echo "  make clean       - Remove build artifacts"
+	@echo "  make test        - Run tests"
+	@echo "  make run         - Run the CLI"
+	@echo "  make lint        - Run linter"
+
+build:
+	@echo "Building $(BINARY_NAME)..."
+	$(GO) build $(GOFLAGS) $(LDFLAGS) -o $(BINARY_NAME) ./cmd/commit-gen
+
+install: build
+	@echo "Installing $(BINARY_NAME) to /usr/local/bin..."
+	@sudo cp $(BINARY_NAME) /usr/local/bin/
+
+clean:
+	@echo "Cleaning..."
+	$(GO) clean
+	@rm -f $(BINARY_NAME)
+
+test:
+	@echo "Running tests..."
+	$(GO) test -v ./...
+
+run: build
+	@./$(BINARY_NAME)
+
+lint:
+	@echo "Running linter..."
+	@which golangci-lint > /dev/null || (echo "Installing golangci-lint..." && $(GO) install github.com/golangci-lint/golangci-lint/cmd/golangci-lint@latest)
+	golangci-lint run ./...
+
+fmt:
+	@echo "Formatting code..."
+	$(GO) fmt ./...
+
+mod-tidy:
+	@echo "Tidying modules..."
+	$(GO) mod tidy
+
+mod-verify:
+	@echo "Verifying modules..."
+	$(GO) mod verify
+
+all: clean build test
