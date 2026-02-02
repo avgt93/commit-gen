@@ -52,7 +52,6 @@ fi
 exit 0
 `
 
-// Install installs the git hook in the current repository
 func Install() error {
 	root, err := git.GetRepositoryRoot()
 	if err != nil {
