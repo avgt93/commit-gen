@@ -54,6 +54,8 @@ mod-verify:
 
 all: clean install test
 
+local: clean build 
+
 release:
 	@echo "Building cross-platform releases..."
 	@./scripts/build-release.sh

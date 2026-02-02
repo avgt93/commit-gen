@@ -49,7 +49,6 @@ func Initialize(cfgFile string) error {
 
 	viper.SetDefault("git.staged_only", true)
 
-	// Set config file location
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
 	} else {
@@ -58,13 +57,12 @@ func Initialize(cfgFile string) error {
 			viper.AddConfigPath(filepath.Join(homeDir, ".config", "commit-gen"))
 			viper.SetConfigName("config")
 			viper.SetConfigType("yaml")
+			SaveConfig()
 		}
 	}
 
-	// Try to read config file, but don't fail if it doesn't exist
 	viper.ReadInConfig()
 
-	// Also read from environment variables
 	viper.SetEnvPrefix("COMMIT_GEN")
 	viper.AutomaticEnv()
 

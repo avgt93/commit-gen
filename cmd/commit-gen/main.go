@@ -229,6 +229,23 @@ var versionCmd = &cobra.Command{
 	},
 }
 
+var initConfigCmd = &cobra.Command{
+	Use:   "init",
+	Short: "Initialize the configuration file",
+	Run: func(cmd *cobra.Command, args []string) {
+		if _, err := os.Stat(filepath.Join(os.Getenv("HOME"), ".config", "commit-gen")); err == nil {
+			color.Red("Error: configuration file already exists")
+			return
+		}
+		if err := config.Initialize(""); err != nil {
+			color.Red("Error: %v", err)
+			return
+		}
+		color.Green("✓ Configuration file initialized successfully")
+		fmt.Println("Now you can use: git commit -m \"\"")
+	},
+}
+
 func init() {
 	cobra.OnInitialize(initConfig)
 
@@ -242,6 +259,7 @@ func init() {
 	rootCmd.AddCommand(configCmd)
 	rootCmd.AddCommand(previewCmd)
 	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(initConfigCmd)
 
 	// Cache subcommands
 	cacheCmd.AddCommand(cacheStatusCmd)

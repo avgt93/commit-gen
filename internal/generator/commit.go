@@ -10,14 +10,12 @@ import (
 	"github.com/avgt93/commit-gen/internal/opencode"
 )
 
-// Generator orchestrates the commit message generation
 type Generator struct {
 	client *opencode.Client
 	cache  *cache.SessionCache
 	config *config.Config
 }
 
-// NewGenerator creates a new commit message generator
 func NewGenerator(cfg *config.Config, cacheInstance *cache.SessionCache) *Generator {
 	client := opencode.NewClient(cfg.OpenCode.Host, cfg.OpenCode.Port, cfg.OpenCode.Timeout)
 	return &Generator{
@@ -27,15 +25,12 @@ func NewGenerator(cfg *config.Config, cacheInstance *cache.SessionCache) *Genera
 	}
 }
 
-// Generate generates a commit message from staged changes
 func (g *Generator) Generate() (string, error) {
-	// Check if OpenCode server is running
 	healthy, err := g.client.CheckHealth()
 	if err != nil || !healthy {
 		return "", fmt.Errorf("opencode server is not running at %s:%d\n\nPlease start it with: opencode serve", g.config.OpenCode.Host, g.config.OpenCode.Port)
 	}
 
-	// Get staged diff
 	diff, err := git.GetStagedDiff()
 	if err != nil {
 		return "", fmt.Errorf("failed to get git diff: %w", err)
@@ -45,13 +40,11 @@ func (g *Generator) Generate() (string, error) {
 		return "", fmt.Errorf("no staged changes found")
 	}
 
-	// Get or create session
 	var sessionID string
 	cachedSession, err := g.cache.Get()
 	if err == nil && cachedSession != nil {
 		sessionID = cachedSession.SessionID
 	} else {
-		// Create new session
 		repoName, err := git.GetRepositoryName()
 		if err != nil {
 			repoName = "project"
@@ -64,12 +57,10 @@ func (g *Generator) Generate() (string, error) {
 
 		sessionID = session.ID
 		if err := g.cache.Set(sessionID); err != nil {
-			// Log but don't fail
 			fmt.Printf("Warning: failed to cache session: %v\n", err)
 		}
 	}
 
-	// Update last used time
 	g.cache.UpdateLastUsed(sessionID)
 
 	// Build the prompt
