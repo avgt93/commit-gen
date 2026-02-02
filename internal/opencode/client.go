@@ -48,7 +48,6 @@ type Message struct {
 	Parts []MessagePart `json:"parts"`
 }
 
-// NewClient creates a new OpenCode client
 func NewClient(host string, port int, timeout int) *Client {
 	baseURL := fmt.Sprintf("http://%s:%d", host, port)
 	return &Client{
@@ -60,7 +59,6 @@ func NewClient(host string, port int, timeout int) *Client {
 	}
 }
 
-// CheckHealth checks if the OpenCode server is running
 func (c *Client) CheckHealth() (bool, error) {
 	resp, err := c.httpClient.Get(fmt.Sprintf("%s/global/health", c.baseURL))
 	if err != nil {
@@ -80,7 +78,6 @@ func (c *Client) CheckHealth() (bool, error) {
 	return health.Healthy, nil
 }
 
-// CreateSession creates a new OpenCode session
 func (c *Client) CreateSession(title string) (*Session, error) {
 	reqBody := map[string]string{"title": title}
 	bodyBytes, err := json.Marshal(reqBody)
@@ -111,7 +108,6 @@ func (c *Client) CreateSession(title string) (*Session, error) {
 	return &session, nil
 }
 
-// SendMessage sends a message to a session and gets a response
 func (c *Client) SendMessage(sessionID string, message string, model *Model) (string, error) {
 	req := PromptRequest{
 		Model: model,
@@ -148,7 +144,6 @@ func (c *Client) SendMessage(sessionID string, message string, model *Model) (st
 		return "", fmt.Errorf("failed to parse message response: %w", err)
 	}
 
-	// Extract text from response parts
 	for _, part := range msg.Parts {
 		if part.Type == "text" {
 			return part.Text, nil
@@ -158,7 +153,6 @@ func (c *Client) SendMessage(sessionID string, message string, model *Model) (st
 	return "", fmt.Errorf("no text response received")
 }
 
-// GetSession retrieves session details
 func (c *Client) GetSession(sessionID string) (*Session, error) {
 	resp, err := c.httpClient.Get(fmt.Sprintf("%s/session/%s", c.baseURL, sessionID))
 	if err != nil {

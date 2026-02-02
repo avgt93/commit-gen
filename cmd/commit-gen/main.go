@@ -11,6 +11,7 @@ import (
 	"github.com/avgt93/commit-gen/internal/generator"
 	"github.com/avgt93/commit-gen/internal/git"
 	"github.com/avgt93/commit-gen/internal/hook"
+	"github.com/avgt93/commit-gen/internal/opencode"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -42,6 +43,10 @@ var generateCmd = &cobra.Command{
 The message will be generated using OpenCode's AI based on the diff.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg := config.Get()
+		ignoreCheck, _ := cmd.Flags().GetBool("ignore-server-check")
+		if err := checkOpenCodeHealth(cfg, ignoreCheck); err != nil {
+			return err
+		}
 		cacheDir := filepath.Join(os.Getenv("HOME"), ".cache", "commit-gen")
 		sessionCache := cache.GetCache(24*time.Hour, cacheDir)
 
@@ -50,15 +55,6 @@ The message will be generated using OpenCode's AI based on the diff.`,
 		message, err := gen.Generate()
 		if err != nil {
 			color.Red("Error: %v", err)
-
-			// Prompt user to start OpenCode if needed
-			if err.Error() == fmt.Sprintf("opencode server is not running at %s:%d\n\nPlease start it with: opencode serve", cfg.OpenCode.Host, cfg.OpenCode.Port) {
-				fmt.Println("\nTo fix this, run:")
-				color.Cyan("  opencode serve")
-				fmt.Println("\nIn another terminal, then try again.")
-				return err
-			}
-
 			return err
 		}
 
@@ -112,11 +108,9 @@ var uninstallCmd = &cobra.Command{
 }
 
 var configCmd = &cobra.Command{
-	Use: "config",
-
+	Use:   "config",
 	Short: "Manage configuration",
-
-	Long: `View and modify commit-gen configuration.`,
+	Long:  `View and modify commit-gen configuration.`,
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg := config.Get()
@@ -161,6 +155,10 @@ var previewCmd = &cobra.Command{
 		color.Cyan("\n=== Generated Commit Message ===")
 
 		cfg := config.Get()
+		ignoreCheck, _ := cmd.Flags().GetBool("ignore-server-check")
+		if err := checkOpenCodeHealth(cfg, ignoreCheck); err != nil {
+			return err
+		}
 		cacheDir := filepath.Join(os.Getenv("HOME"), ".cache", "commit-gen")
 		sessionCache := cache.GetCache(24*time.Hour, cacheDir)
 
@@ -229,6 +227,54 @@ var versionCmd = &cobra.Command{
 	},
 }
 
+var healthCmd = &cobra.Command{
+	Use:   "health",
+	Short: "Check if the OpenCode server is running",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		cfg := config.Get()
+
+		// config file found health check
+		// pretty print config file here if config file exists else print error
+
+		color.Cyan("Commit-gen:")
+		fmt.Printf("  Version: %s\n", version)
+
+		if _, err := os.Stat(filepath.Join(os.Getenv("HOME"), ".config", "commit-gen")); err == nil {
+			color.Cyan("Configuration file:")
+			fmt.Printf("  Location: %s\n", filepath.Join(os.Getenv("HOME"), ".config", "commit-gen"))
+			fmt.Printf("  Exists: true\n")
+		} else {
+			color.Cyan("Configuration file:")
+			fmt.Printf("  Location: %s\n", filepath.Join(os.Getenv("HOME"), ".config", "commit-gen"))
+			fmt.Printf("  Exists: false\n")
+		}
+
+		color.Cyan("Configuration:")
+
+		fmt.Printf("  Host: %s\n", cfg.OpenCode.Host)
+		fmt.Printf("  Port: %d\n", cfg.OpenCode.Port)
+		fmt.Printf("  Timeout: %ds\n", cfg.OpenCode.Timeout)
+		fmt.Printf("  Cache: %v\n", cfg.Cache.Enabled)
+
+		color.Cyan("OpenCode Health Check:")
+		client := opencode.NewClient(cfg.OpenCode.Host, cfg.OpenCode.Port, cfg.OpenCode.Timeout)
+
+		healthy, err := client.CheckHealth()
+		if err != nil {
+			color.Red("✗ OpenCode server is not running")
+			return err
+		}
+
+		if healthy {
+			color.Green("✓ OpenCode server is running")
+		} else {
+			color.Red("✗ OpenCode server is not running")
+		}
+
+		return nil
+	},
+}
+
 var initConfigCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize the configuration file",
@@ -260,6 +306,7 @@ func init() {
 	rootCmd.AddCommand(previewCmd)
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(initConfigCmd)
+	rootCmd.AddCommand(healthCmd)
 
 	// Cache subcommands
 	cacheCmd.AddCommand(cacheStatusCmd)
@@ -270,6 +317,27 @@ func init() {
 	generateCmd.Flags().StringP("style", "s", "conventional", "Commit message style (conventional, imperative, detailed)")
 	generateCmd.Flags().Bool("dry-run", false, "Show message without writing to git")
 	generateCmd.Flags().Bool("hook", false, "Internal flag for git hook usage")
+	generateCmd.Flags().Bool("ignore-server-check", false, "Skip checking if OpenCode server is running")
+
+	// Preview command flags
+	previewCmd.Flags().Bool("ignore-server-check", false, "Skip checking if OpenCode server is running")
+}
+
+func checkOpenCodeHealth(cfg *config.Config, ignoreCheck bool) error {
+	if ignoreCheck {
+		return nil
+	}
+	client := opencode.NewClient(cfg.OpenCode.Host, cfg.OpenCode.Port, cfg.OpenCode.Timeout)
+
+	healthy, err := client.CheckHealth()
+	if err != nil || !healthy {
+		color.Red("Error: opencode server is not running at %s:%d", cfg.OpenCode.Host, cfg.OpenCode.Port)
+		fmt.Println("\nTo fix this, run:")
+		color.Cyan("  opencode serve")
+		fmt.Println("\nIn another terminal, then try again.")
+		return fmt.Errorf("opencode server not running")
+	}
+	return nil
 }
 
 func initConfig() {

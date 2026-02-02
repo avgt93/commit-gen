@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -9,6 +10,8 @@ import (
 	"github.com/avgt93/commit-gen/internal/git"
 	"github.com/avgt93/commit-gen/internal/opencode"
 )
+
+var ErrServerNotRunning = errors.New("opencode server is not running")
 
 type Generator struct {
 	client *opencode.Client
@@ -28,7 +31,7 @@ func NewGenerator(cfg *config.Config, cacheInstance *cache.SessionCache) *Genera
 func (g *Generator) Generate() (string, error) {
 	healthy, err := g.client.CheckHealth()
 	if err != nil || !healthy {
-		return "", fmt.Errorf("opencode server is not running at %s:%d\n\nPlease start it with: opencode serve", g.config.OpenCode.Host, g.config.OpenCode.Port)
+		return "", fmt.Errorf("%w at %s:%d", ErrServerNotRunning, g.config.OpenCode.Host, g.config.OpenCode.Port)
 	}
 
 	diff, err := git.GetStagedDiff()
@@ -63,22 +66,18 @@ func (g *Generator) Generate() (string, error) {
 
 	g.cache.UpdateLastUsed(sessionID)
 
-	// Build the prompt
 	prompt := g.buildPrompt(diff)
 
-	// Get model configuration
 	model := &opencode.Model{
 		ProviderID: g.config.Generation.Model.Provider,
 		ModelID:    g.config.Generation.Model.ModelID,
 	}
 
-	// Send to OpenCode and get response
 	response, err := g.client.SendMessage(sessionID, prompt, model)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate commit message: %w", err)
 	}
 
-	// Extract just the commit message from the response
 	message := extractCommitMessage(response)
 
 	return message, nil
@@ -129,10 +128,8 @@ func getStyleGuide(style string) string {
 }
 
 func extractCommitMessage(response string) string {
-	// Clean up the response - remove markdown code blocks if present
 	response = strings.TrimSpace(response)
 
-	// Remove markdown code blocks
 	if strings.HasPrefix(response, "```") {
 		lines := strings.Split(response, "\n")
 		if len(lines) > 1 {
@@ -140,11 +137,10 @@ func extractCommitMessage(response string) string {
 		}
 	}
 
-	if strings.HasSuffix(response, "```") {
-		response = strings.TrimSuffix(response, "```")
+	if before, ok := strings.CutSuffix(response, "```"); ok {
+		response = before
 	}
 
-	// Take only the first line if multiple lines are returned
 	lines := strings.Split(response, "\n")
 	message := strings.TrimSpace(lines[0])
 
