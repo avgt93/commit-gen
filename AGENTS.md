@@ -235,14 +235,3 @@ go build -o commit-gen ./cmd/commit-gen
 
 This produces a single, standalone executable with no dependencies.
 
-## Future Roadmap
-
-- [ ] Support for more AI providers beyond OpenCode
-- [ ] Custom system prompts per repository
-- [ ] Integration with conventional-commits standard
-- [ ] Support for commit message templates
-- [ ] Analytics on generated messages
-- [ ] IDE integration (VS Code, etc.)
-- [ ] Interactive message editing before commit
-- [ ] Support for co-authored commits
-- [ ] Commit message history

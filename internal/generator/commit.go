@@ -31,8 +31,11 @@ func NewGenerator(cfg *config.Config, cacheInstance *cache.SessionCache) *Genera
 
 func (g *Generator) Generate() (string, error) {
 	healthy, err := g.client.CheckHealth()
+
 	if err != nil || !healthy {
-		return "", fmt.Errorf("%w at %s:%d", ErrServerNotRunning, g.config.OpenCode.Host, g.config.OpenCode.Port)
+
+		fmt.Printf("%w at %s:%d", ErrServerNotRunning, g.config.OpenCode.Host, g.config.OpenCode.Port)
+		return "", fmt.Errorf("failed to start opencode server: %w", err)
 	}
 
 	diff, err := git.GetStagedDiff()

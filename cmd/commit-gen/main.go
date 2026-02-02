@@ -2,9 +2,13 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/avgt93/commit-gen/internal/cache"
@@ -231,7 +235,6 @@ var healthCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg := config.Get()
 
-
 		color.Cyan("Commit-gen:")
 		fmt.Printf("  Version: %s\n", version)
 
@@ -318,16 +321,56 @@ func checkOpenCodeHealth(cfg *config.Config, ignoreCheck bool) error {
 	if ignoreCheck {
 		return nil
 	}
-	client := opencode.NewClient(cfg.OpenCode.Host, cfg.OpenCode.Port, cfg.OpenCode.Timeout)
+
+	client := opencode.NewClient(
+		cfg.OpenCode.Host,
+		cfg.OpenCode.Port,
+		cfg.OpenCode.Timeout,
+	)
 
 	healthy, err := client.CheckHealth()
-	if err != nil || !healthy {
-		color.Red("Error: opencode server is not running at %s:%d", cfg.OpenCode.Host, cfg.OpenCode.Port)
-		fmt.Println("\nTo fix this, run:")
-		color.Cyan("  opencode serve")
-		fmt.Println("\nIn another terminal, then try again.")
-		return fmt.Errorf("opencode server not running")
+	if err == nil && healthy {
+		return nil
 	}
+
+	cmd := exec.Command(
+		"opencode",
+		"serve",
+		"--port", strconv.Itoa(cfg.OpenCode.Port),
+	)
+
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Setpgid: true,
+	}
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Start(); err != nil {
+		ErrServerNotRunning := errors.New("opencode server is not running")
+		return fmt.Errorf(
+			"%w at %s:%d: %v",
+			ErrServerNotRunning,
+			cfg.OpenCode.Host,
+			cfg.OpenCode.Port,
+			err,
+		)
+	}
+
+	go func() {
+		if err := cmd.Wait(); err != nil {
+			fmt.Printf("opencode server exited: %v\n", err)
+		}
+	}()
+
+	// Give it a moment and recheck health
+	time.Sleep(2 * time.Second)
+
+	healthy, err = client.CheckHealth()
+	if err != nil || !healthy {
+		return fmt.Errorf("opencode server failed to become healthy")
+	}
+
 	return nil
 }
 
