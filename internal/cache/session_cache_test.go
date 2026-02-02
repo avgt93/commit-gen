@@ -1,3 +1,4 @@
+// Package cache provides in-memory and persistent session caching.
 package cache
 
 import (
@@ -7,9 +8,7 @@ import (
 	"time"
 )
 
-// TestCacheInitialization tests cache initialization
 func TestCacheInitialization(t *testing.T) {
-	// Use temporary directory for cache
 	tmpDir := filepath.Join(os.TempDir(), "commit-gen-test-cache")
 	defer os.RemoveAll(tmpDir)
 
@@ -26,20 +25,16 @@ func TestCacheInitialization(t *testing.T) {
 	t.Log("✓ Cache initialized successfully")
 }
 
-// TestCacheSetAndGet tests setting and getting a cached session
 func TestCacheSetAndGet(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping test in short mode")
 	}
 
-	// Skip if not in git repo (cache.Set requires git repo)
 	tmpDir := filepath.Join(os.TempDir(), "commit-gen-test-set-get")
 	defer os.RemoveAll(tmpDir)
 
 	cache := GetCache(24*time.Hour, tmpDir)
 
-	// Note: This test is limited because Set() requires git repository
-	// We can test cache initialization but not the full Set/Get flow
 	if cache == nil {
 		t.Error("Cache is nil")
 	} else {
@@ -47,7 +42,6 @@ func TestCacheSetAndGet(t *testing.T) {
 	}
 }
 
-// TestCacheTTLExpiration tests that cached sessions expire after TTL
 func TestCacheTTLExpiration(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping test in short mode")
@@ -56,12 +50,9 @@ func TestCacheTTLExpiration(t *testing.T) {
 	tmpDir := filepath.Join(os.TempDir(), "commit-gen-test-ttl")
 	defer os.RemoveAll(tmpDir)
 
-	// Create cache with very short TTL for testing
 	shortTTL := 100 * time.Millisecond
 	cache := GetCache(shortTTL, tmpDir)
 
-	// Note: Cannot fully test because Set() requires git repo
-	// But we can verify cache structure is correct
 	if cache.cache == nil {
 		t.Error("Cache map is nil")
 	} else {
@@ -69,7 +60,6 @@ func TestCacheTTLExpiration(t *testing.T) {
 	}
 }
 
-// TestCacheUpdateLastUsed tests updating last used timestamp
 func TestCacheUpdateLastUsed(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping test in short mode")
@@ -80,8 +70,6 @@ func TestCacheUpdateLastUsed(t *testing.T) {
 
 	cache := GetCache(24*time.Hour, tmpDir)
 
-	// Note: Cannot fully test because Set() requires git repo
-	// But we can verify cache structure is correct
 	if cache == nil {
 		t.Error("Cache is nil")
 	} else {
@@ -89,22 +77,18 @@ func TestCacheUpdateLastUsed(t *testing.T) {
 	}
 }
 
-// TestCacheClear tests clearing the cache
 func TestCacheClear(t *testing.T) {
 	tmpDir := filepath.Join(os.TempDir(), "commit-gen-test-clear")
 	defer os.RemoveAll(tmpDir)
 
 	cache := GetCache(24*time.Hour, tmpDir)
 
-	// Note: Cannot fully test because Set() requires git repo
-	// But we can test Clear() on empty cache
 	if err := cache.Clear(); err != nil {
 		t.Fatalf("Clear failed: %v", err)
 	}
 
 	t.Log("✓ Cache cleared successfully")
 
-	// Check status after clear
 	total, valid, err := cache.Status()
 	if err != nil {
 		t.Fatalf("Status failed after clear: %v", err)
@@ -117,15 +101,12 @@ func TestCacheClear(t *testing.T) {
 	}
 }
 
-// TestCacheStatus tests getting cache status
 func TestCacheStatus(t *testing.T) {
 	tmpDir := filepath.Join(os.TempDir(), "commit-gen-test-status")
 	defer os.RemoveAll(tmpDir)
 
 	cache := GetCache(24*time.Hour, tmpDir)
 
-	// Note: Cannot fully test because Set() requires git repo
-	// But we can test Status() on empty cache
 	total, valid, err := cache.Status()
 	if err != nil {
 		t.Fatalf("Status failed: %v", err)
@@ -140,24 +121,18 @@ func TestCacheStatus(t *testing.T) {
 	}
 }
 
-// TestCachePersistence tests cache persistence to disk
 func TestCachePersistence(t *testing.T) {
 	tmpDir := filepath.Join(os.TempDir(), "commit-gen-test-persist")
 	defer os.RemoveAll(tmpDir)
 
 	cache := GetCache(24*time.Hour, tmpDir)
 
-	// Note: Cannot fully test Set() because it requires git repo
-	// But we can test that cache file management works
 
-	// Clear to ensure clean state
 	cache.Clear()
 
-	// After clearing, cache might not write file if empty
 	t.Logf("✓ Cache persistence setup complete")
 }
 
-// TestHashRepoPath tests the hash function
 func TestHashRepoPath(t *testing.T) {
 	path1 := "/home/user/project"
 	path2 := "/home/user/project"

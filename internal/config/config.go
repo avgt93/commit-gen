@@ -1,3 +1,4 @@
+// Package config provides loading and parsing of YAML configuration.
 package config
 
 import (

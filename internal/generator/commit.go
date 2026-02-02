@@ -1,3 +1,4 @@
+// Package generator orchestrates commit message generation.
 package generator
 
 import (
@@ -83,7 +84,6 @@ func (g *Generator) Generate() (string, error) {
 	return message, nil
 }
 
-// buildPrompt constructs the prompt for OpenCode
 func (g *Generator) buildPrompt(diff string) string {
 	style := g.config.Generation.Style
 

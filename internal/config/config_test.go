@@ -1,15 +1,13 @@
+// Package config provides loading and parsing of YAML configuration.
 package config
 
 import (
 	"testing"
 )
 
-// TestConfigInitialization tests that configuration initializes properly
 func TestConfigInitialization(t *testing.T) {
-	// Clear any existing config
 	cfg = nil
 
-	// Initialize with default config
 	if err := Initialize(""); err != nil {
 		t.Fatalf("Initialize failed: %v", err)
 	}
@@ -21,7 +19,6 @@ func TestConfigInitialization(t *testing.T) {
 	t.Log("✓ Configuration initialized successfully")
 }
 
-// TestDefaultValues tests that default values are set correctly
 func TestDefaultValues(t *testing.T) {
 	TestConfigInitialization(t)
 
@@ -52,7 +49,6 @@ func TestDefaultValues(t *testing.T) {
 	}
 }
 
-// TestGetConfigInstance tests getting config instance
 func TestGetConfigInstance(t *testing.T) {
 	cfg := Get()
 	if cfg == nil {
@@ -61,7 +57,6 @@ func TestGetConfigInstance(t *testing.T) {
 	t.Log("✓ Got config instance successfully")
 }
 
-// TestConfigAccessors tests configuration accessor methods
 func TestConfigAccessors(t *testing.T) {
 	TestConfigInitialization(t)
 
@@ -81,15 +76,10 @@ func TestConfigAccessors(t *testing.T) {
 	}
 }
 
-// TestEnvironmentVariableOverride tests that env vars override config
 func TestEnvironmentVariableOverride(t *testing.T) {
-	// Note: This test is limited because viper caches the config
-	// and environment variables are read at initialization time
-	// For a complete test, would need to reset viper between tests
 
 	cfg := Get()
 
-	// Just verify that the config system supports the env prefix
 	if cfg.OpenCode.Host == "" {
 		t.Error("OpenCode Host is empty")
 	} else {
@@ -97,7 +87,6 @@ func TestEnvironmentVariableOverride(t *testing.T) {
 	}
 }
 
-// TestConfigGet tests the Get() function
 func TestConfigGet(t *testing.T) {
 	cfg := Get()
 
@@ -116,7 +105,6 @@ func TestConfigGet(t *testing.T) {
 	t.Logf("  - Model: %s/%s", cfg.Generation.Model.Provider, cfg.Generation.Model.ModelID)
 }
 
-// TestModelConfiguration tests model configuration
 func TestModelConfiguration(t *testing.T) {
 	cfg := Get()
 
@@ -133,7 +121,6 @@ func TestModelConfiguration(t *testing.T) {
 	t.Logf("  - Model ID: %s", cfg.Generation.Model.ModelID)
 }
 
-// TestCommitStyles tests that all commit styles are valid
 func TestCommitStyles(t *testing.T) {
 	validStyles := []string{"conventional", "imperative", "detailed"}
 

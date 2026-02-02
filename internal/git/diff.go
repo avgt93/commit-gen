@@ -1,3 +1,4 @@
+// Package git handles git operations like diff and commit messages.
 package git
 
 import (
@@ -8,7 +9,6 @@ import (
 	"strings"
 )
 
-// GetStagedDiff returns the diff of staged changes
 func GetStagedDiff() (string, error) {
 	cmd := exec.Command("git", "diff", "--staged")
 	output, err := cmd.Output()
@@ -18,7 +18,6 @@ func GetStagedDiff() (string, error) {
 	return string(output), nil
 }
 
-// GetRepositoryRoot returns the root directory of the git repository
 func GetRepositoryRoot() (string, error) {
 	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
 	output, err := cmd.Output()
@@ -28,7 +27,6 @@ func GetRepositoryRoot() (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-// GetRepositoryName returns the name of the repository
 func GetRepositoryName() (string, error) {
 	root, err := GetRepositoryRoot()
 	if err != nil {
@@ -37,7 +35,6 @@ func GetRepositoryName() (string, error) {
 	return filepath.Base(root), nil
 }
 
-// GetStatus returns the git status
 func GetStatus() (string, error) {
 	cmd := exec.Command("git", "status", "--porcelain")
 	output, err := cmd.Output()
@@ -47,7 +44,6 @@ func GetStatus() (string, error) {
 	return string(output), nil
 }
 
-// HasStagedChanges checks if there are any staged changes
 func HasStagedChanges() (bool, error) {
 	diff, err := GetStagedDiff()
 	if err != nil {
@@ -56,7 +52,6 @@ func HasStagedChanges() (bool, error) {
 	return len(strings.TrimSpace(diff)) > 0, nil
 }
 
-// GetChangedFiles returns a list of staged file paths
 func GetChangedFiles() ([]string, error) {
 	cmd := exec.Command("git", "diff", "--staged", "--name-only")
 	output, err := cmd.Output()
@@ -74,14 +69,12 @@ func GetChangedFiles() ([]string, error) {
 	return result, nil
 }
 
-// IsGitRepository checks if the current directory is a git repository
 func IsGitRepository() bool {
 	cmd := exec.Command("git", "rev-parse", "--git-dir")
 	err := cmd.Run()
 	return err == nil
 }
 
-// GetCommitMessageFile returns the path to the commit message file (used by git hooks)
 func GetCommitMessageFile() (string, error) {
 	root, err := GetRepositoryRoot()
 	if err != nil {
@@ -90,7 +83,6 @@ func GetCommitMessageFile() (string, error) {
 	return filepath.Join(root, ".git", "COMMIT_EDITMSG"), nil
 }
 
-// WriteCommitMessage writes a message to the commit message file
 func WriteCommitMessage(message string) error {
 	msgFile, err := GetCommitMessageFile()
 	if err != nil {
@@ -100,7 +92,6 @@ func WriteCommitMessage(message string) error {
 	return os.WriteFile(msgFile, []byte(message), 0o644)
 }
 
-// ReadCommitMessage reads the current commit message from the file
 func ReadCommitMessage() (string, error) {
 	msgFile, err := GetCommitMessageFile()
 	if err != nil {

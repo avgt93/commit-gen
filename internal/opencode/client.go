@@ -1,3 +1,4 @@
+// Package opencode provides HTTP client for OpenCode API.
 package opencode
 
 import (

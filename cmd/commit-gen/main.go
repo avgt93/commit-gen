@@ -1,3 +1,4 @@
+// Package main is the CLI entry point for commit-gen.
 package main
 
 import (
@@ -29,7 +30,6 @@ based on your staged git changes using OpenCode's AI capabilities.
 
 Simply run 'git commit -m ""' and it will fill in the message for you!`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// Default to generate command if no args
 		if len(args) == 0 {
 			cmd.Help()
 		}
@@ -62,10 +62,8 @@ The message will be generated using OpenCode's AI based on the diff.`,
 		isHook, _ := cmd.Flags().GetBool("hook")
 
 		if dryRun || isHook {
-			// Just output the message
 			fmt.Println(message)
 		} else {
-			// Write to commit message file
 			if err := git.WriteCommitMessage(message); err != nil {
 				return fmt.Errorf("failed to write commit message: %w", err)
 			}
@@ -233,8 +231,6 @@ var healthCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg := config.Get()
 
-		// config file found health check
-		// pretty print config file here if config file exists else print error
 
 		color.Cyan("Commit-gen:")
 		fmt.Printf("  Version: %s\n", version)
@@ -295,10 +291,8 @@ var initConfigCmd = &cobra.Command{
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	// Persistent flags
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/commit-gen/config.yaml)")
 
-	// Add commands
 	rootCmd.AddCommand(generateCmd)
 	rootCmd.AddCommand(installCmd)
 	rootCmd.AddCommand(uninstallCmd)
@@ -308,18 +302,15 @@ func init() {
 	rootCmd.AddCommand(initConfigCmd)
 	rootCmd.AddCommand(healthCmd)
 
-	// Cache subcommands
 	cacheCmd.AddCommand(cacheStatusCmd)
 	cacheCmd.AddCommand(cacheClearCmd)
 	rootCmd.AddCommand(cacheCmd)
 
-	// Generate command flags
 	generateCmd.Flags().StringP("style", "s", "conventional", "Commit message style (conventional, imperative, detailed)")
 	generateCmd.Flags().Bool("dry-run", false, "Show message without writing to git")
 	generateCmd.Flags().Bool("hook", false, "Internal flag for git hook usage")
 	generateCmd.Flags().Bool("ignore-server-check", false, "Skip checking if OpenCode server is running")
 
-	// Preview command flags
 	previewCmd.Flags().Bool("ignore-server-check", false, "Skip checking if OpenCode server is running")
 }
 

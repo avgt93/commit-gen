@@ -1,3 +1,4 @@
+// Package git handles git operations like diff and commit messages.
 package git
 
 import (
@@ -7,16 +8,12 @@ import (
 	"testing"
 )
 
-// TestIsGitRepository tests whether we can detect a git repository
 func TestIsGitRepository(t *testing.T) {
-	// This test will only pass if run inside a git repository
-	// For now, we'll test the current directory
 	if !IsGitRepository() {
 		t.Skip("Not in a git repository, skipping test")
 	}
 }
 
-// TestGetRepositoryRoot tests getting the repository root
 func TestGetRepositoryRoot(t *testing.T) {
 	if !IsGitRepository() {
 		t.Skip("Not in a git repository, skipping test")
@@ -31,19 +28,16 @@ func TestGetRepositoryRoot(t *testing.T) {
 		t.Error("GetRepositoryRoot returned empty string")
 	}
 
-	// Verify the path exists
 	if _, err := os.Stat(root); os.IsNotExist(err) {
 		t.Errorf("Repository root path does not exist: %s", root)
 	}
 
-	// Verify .git directory exists
 	gitDir := filepath.Join(root, ".git")
 	if _, err := os.Stat(gitDir); os.IsNotExist(err) {
 		t.Errorf(".git directory not found at: %s", gitDir)
 	}
 }
 
-// TestGetRepositoryName tests getting the repository name
 func TestGetRepositoryName(t *testing.T) {
 	if !IsGitRepository() {
 		t.Skip("Not in a git repository, skipping test")
@@ -64,7 +58,6 @@ func TestGetRepositoryName(t *testing.T) {
 	}
 }
 
-// TestGetStatus tests getting git status
 func TestGetStatus(t *testing.T) {
 	if !IsGitRepository() {
 		t.Skip("Not in a git repository, skipping test")
@@ -75,7 +68,6 @@ func TestGetStatus(t *testing.T) {
 		t.Fatalf("GetStatus failed: %v", err)
 	}
 
-	// Status can be empty or contain file changes, both are valid
 	if status == "" {
 		t.Log("No uncommitted changes (status is empty)")
 	} else {
@@ -83,7 +75,6 @@ func TestGetStatus(t *testing.T) {
 	}
 }
 
-// TestGetStagedDiff tests getting staged diff
 func TestGetStagedDiff(t *testing.T) {
 	if !IsGitRepository() {
 		t.Skip("Not in a git repository, skipping test")
@@ -94,7 +85,6 @@ func TestGetStagedDiff(t *testing.T) {
 		t.Fatalf("GetStagedDiff failed: %v", err)
 	}
 
-	// Diff can be empty if no staged changes
 	if diff == "" {
 		t.Log("No staged changes (diff is empty)")
 	} else {
@@ -105,7 +95,6 @@ func TestGetStagedDiff(t *testing.T) {
 	}
 }
 
-// TestGetChangedFiles tests getting list of changed files
 func TestGetChangedFiles(t *testing.T) {
 	if !IsGitRepository() {
 		t.Skip("Not in a git repository, skipping test")
@@ -116,14 +105,12 @@ func TestGetChangedFiles(t *testing.T) {
 		t.Fatalf("GetChangedFiles failed: %v", err)
 	}
 
-	// Can be empty if no staged changes
 	t.Logf("Number of staged files: %d", len(files))
 	for _, f := range files {
 		t.Logf("  - %s", f)
 	}
 }
 
-// TestHasStagedChanges tests checking for staged changes
 func TestHasStagedChanges(t *testing.T) {
 	if !IsGitRepository() {
 		t.Skip("Not in a git repository, skipping test")
@@ -141,13 +128,11 @@ func TestHasStagedChanges(t *testing.T) {
 	}
 }
 
-// TestCommitMessageFileOperations tests reading and writing commit messages
 func TestCommitMessageFileOperations(t *testing.T) {
 	if !IsGitRepository() {
 		t.Skip("Not in a git repository, skipping test")
 	}
 
-	// Get the message file path
 	msgFile, err := GetCommitMessageFile()
 	if err != nil {
 		t.Fatalf("GetCommitMessageFile failed: %v", err)
@@ -159,7 +144,6 @@ func TestCommitMessageFileOperations(t *testing.T) {
 
 	t.Logf("Commit message file path: %s", msgFile)
 
-	// Try to read existing message (may not exist)
 	msg, err := ReadCommitMessage()
 	if err != nil {
 		t.Logf("Note: ReadCommitMessage error (may not exist yet): %v", err)
@@ -168,13 +152,11 @@ func TestCommitMessageFileOperations(t *testing.T) {
 	}
 }
 
-// TestGitCommandExecution tests that git commands work
 func TestGitCommandExecution(t *testing.T) {
 	if !IsGitRepository() {
 		t.Skip("Not in a git repository, skipping test")
 	}
 
-	// Try running a simple git command
 	cmd := exec.Command("git", "rev-parse", "--git-dir")
 	output, err := cmd.Output()
 	if err != nil {

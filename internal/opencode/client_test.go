@@ -1,3 +1,4 @@
+// Package opencode provides HTTP client for OpenCode API.
 package opencode
 
 import (
@@ -8,7 +9,6 @@ import (
 	"time"
 )
 
-// TestClientCreation tests creating a new OpenCode client
 func TestClientCreation(t *testing.T) {
 	client := NewClient("localhost", 4096, 30)
 
@@ -23,7 +23,6 @@ func TestClientCreation(t *testing.T) {
 	t.Log("✓ OpenCode client created successfully")
 }
 
-// TestClientBaseURL tests different host/port combinations
 func TestClientBaseURL(t *testing.T) {
 	tests := []struct {
 		host     string
@@ -45,9 +44,7 @@ func TestClientBaseURL(t *testing.T) {
 	}
 }
 
-// TestCheckHealthSuccess tests successful health check
 func TestCheckHealthSuccess(t *testing.T) {
-	// Create a mock server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/global/health" {
 			t.Errorf("Wrong path: %s", r.URL.Path)
@@ -61,7 +58,6 @@ func TestCheckHealthSuccess(t *testing.T) {
 	}))
 	defer server.Close()
 
-	// Create client pointing to mock server
 	client := NewClient("localhost", 9999, 5)
 	client.baseURL = server.URL
 
@@ -77,9 +73,7 @@ func TestCheckHealthSuccess(t *testing.T) {
 	t.Log("✓ Health check passed")
 }
 
-// TestCheckHealthFailure tests failed health check
 func TestCheckHealthFailure(t *testing.T) {
-	// Create a mock server that returns unhealthy
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(HealthResponse{
@@ -104,7 +98,6 @@ func TestCheckHealthFailure(t *testing.T) {
 	t.Log("✓ Unhealthy response detected correctly")
 }
 
-// TestCreateSessionSuccess tests successful session creation
 func TestCreateSessionSuccess(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/session" {
@@ -138,7 +131,6 @@ func TestCreateSessionSuccess(t *testing.T) {
 	t.Logf("✓ Session created: %s", session.ID)
 }
 
-// TestSendMessageSuccess tests successful message sending
 func TestSendMessageSuccess(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -176,7 +168,6 @@ func TestSendMessageSuccess(t *testing.T) {
 	t.Logf("✓ Message sent and response received: %s", response)
 }
 
-// TestSendMessageExtractsFirstTextPart tests that SendMessage extracts text correctly
 func TestSendMessageExtractsFirstTextPart(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -208,7 +199,6 @@ func TestSendMessageExtractsFirstTextPart(t *testing.T) {
 	t.Log("✓ Correctly extracts first text part from response")
 }
 
-// TestGetSessionSuccess tests successful session retrieval
 func TestGetSessionSuccess(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -234,7 +224,6 @@ func TestGetSessionSuccess(t *testing.T) {
 	t.Logf("✓ Session retrieved: %s", session.ID)
 }
 
-// TestClientTimeout tests that client timeout is set
 func TestClientTimeout(t *testing.T) {
 	client := NewClient("localhost", 4096, 15)
 
@@ -245,7 +234,6 @@ func TestClientTimeout(t *testing.T) {
 	t.Logf("✓ Client timeout set correctly: %v", client.timeout)
 }
 
-// TestMessagePartTypes tests different message part types
 func TestMessagePartTypes(t *testing.T) {
 	types := []string{"text", "code", "image", "json"}
 
@@ -263,7 +251,6 @@ func TestMessagePartTypes(t *testing.T) {
 	}
 }
 
-// TestModelConfiguration tests model struct configuration
 func TestModelConfiguration(t *testing.T) {
 	model := &Model{
 		ProviderID: "anthropic",

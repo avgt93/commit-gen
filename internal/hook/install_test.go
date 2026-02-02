@@ -1,36 +1,32 @@
+// Package hook manages git hook installation and uninstallation.
 package hook
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 )
 
-// TestInstallUninstall tests installing and uninstalling the hook
 func TestInstallUninstall(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping hook test in short mode (requires git repo)")
 	}
 
-	// This test requires a git repository
-	// Check if we're in one
 	gitDir := filepath.Join(".", ".git")
 	if _, err := os.Stat(gitDir); os.IsNotExist(err) {
 		t.Skip("Not in a git repository, skipping hook tests")
 	}
 
-	// Test uninstall first (cleanup any existing hook)
 	_ = Uninstall()
 
-	// Test install
 	if err := Install(); err != nil {
 		t.Fatalf("Install failed: %v", err)
 	}
 
 	t.Log("✓ Hook installed successfully")
 
-	// Verify hook was installed
 	root := "."
 
 	hookPath := filepath.Join(root, ".git", "hooks", hookName)
@@ -40,7 +36,6 @@ func TestInstallUninstall(t *testing.T) {
 		t.Logf("✓ Hook file exists: %s", hookPath)
 	}
 
-	// Verify hook is executable
 	info, err := os.Stat(hookPath)
 	if err != nil {
 		t.Fatalf("Failed to stat hook file: %v", err)
@@ -52,14 +47,12 @@ func TestInstallUninstall(t *testing.T) {
 		t.Log("✓ Hook file is executable")
 	}
 
-	// Test uninstall
 	if err := Uninstall(); err != nil {
 		t.Fatalf("Uninstall failed: %v", err)
 	}
 
 	t.Log("✓ Hook uninstalled successfully")
 
-	// Verify hook was removed
 	if _, err := os.Stat(hookPath); !os.IsNotExist(err) {
 		t.Logf("Note: Hook file still exists after uninstall")
 	} else {
@@ -67,7 +60,6 @@ func TestInstallUninstall(t *testing.T) {
 	}
 }
 
-// TestHookContent tests that the hook script has correct content
 func TestHookContent(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping hook test in short mode (requires git repo)")
@@ -78,17 +70,14 @@ func TestHookContent(t *testing.T) {
 		t.Skip("Not in a git repository, skipping hook tests")
 	}
 
-	// Uninstall any existing hook first
 	_ = Uninstall()
 
-	// Install hook
 	if err := Install(); err != nil {
 		t.Fatalf("Install failed: %v", err)
 	}
 
 	hookPath := filepath.Join(".", ".git", "hooks", hookName)
 
-	// Read the hook file
 	content, err := os.ReadFile(hookPath)
 	if err != nil {
 		t.Fatalf("Failed to read hook file: %v", err)
@@ -96,7 +85,6 @@ func TestHookContent(t *testing.T) {
 
 	hookContent := string(content)
 
-	// Check for expected content
 	expectedStrings := []string{
 		"#!/bin/bash",
 		"commit-gen",
@@ -112,11 +100,9 @@ func TestHookContent(t *testing.T) {
 		}
 	}
 
-	// Cleanup
 	_ = Uninstall()
 }
 
-// TestIsInstalledFalse tests IsInstalled when hook is not installed
 func TestIsInstalledFalse(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping hook test in short mode (requires git repo)")
@@ -127,7 +113,6 @@ func TestIsInstalledFalse(t *testing.T) {
 		t.Skip("Not in a git repository, skipping hook tests")
 	}
 
-	// Make sure hook is uninstalled
 	_ = Uninstall()
 
 	installed, err := IsInstalled()
@@ -142,7 +127,6 @@ func TestIsInstalledFalse(t *testing.T) {
 	}
 }
 
-// TestIsInstalledTrue tests IsInstalled when hook is installed
 func TestIsInstalledTrue(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping hook test in short mode (requires git repo)")
@@ -153,7 +137,6 @@ func TestIsInstalledTrue(t *testing.T) {
 		t.Skip("Not in a git repository, skipping hook tests")
 	}
 
-	// Install hook first
 	if err := Install(); err != nil {
 		t.Fatalf("Install failed: %v", err)
 	}
@@ -169,11 +152,9 @@ func TestIsInstalledTrue(t *testing.T) {
 		t.Log("✓ IsInstalled correctly returns true when installed")
 	}
 
-	// Cleanup
 	_ = Uninstall()
 }
 
-// TestInstallIdempotent tests that installing twice fails gracefully
 func TestInstallIdempotent(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping hook test in short mode (requires git repo)")
@@ -184,17 +165,14 @@ func TestInstallIdempotent(t *testing.T) {
 		t.Skip("Not in a git repository, skipping hook tests")
 	}
 
-	// Uninstall first
 	_ = Uninstall()
 
-	// Install first time
 	if err := Install(); err != nil {
 		t.Fatalf("First install failed: %v", err)
 	}
 
 	t.Log("✓ First install succeeded")
 
-	// Try to install second time (should fail or warn)
 	err := Install()
 	if err != nil {
 		t.Logf("✓ Second install correctly returns error: %v", err)
@@ -202,11 +180,9 @@ func TestInstallIdempotent(t *testing.T) {
 		t.Log("Note: Second install succeeded (may overwrite)")
 	}
 
-	// Cleanup
 	_ = Uninstall()
 }
 
-// TestUninstallWithoutInstall tests uninstalling when not installed
 func TestUninstallWithoutInstall(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping hook test in short mode (requires git repo)")
@@ -217,10 +193,8 @@ func TestUninstallWithoutInstall(t *testing.T) {
 		t.Skip("Not in a git repository, skipping hook tests")
 	}
 
-	// Make sure it's not installed
 	_ = Uninstall()
 
-	// Try to uninstall again
 	err := Uninstall()
 	if err != nil {
 		t.Logf("✓ Uninstall correctly returns error when not installed: %v", err)
@@ -229,8 +203,9 @@ func TestUninstallWithoutInstall(t *testing.T) {
 	}
 }
 
-// TestHookScriptContent tests the actual hook script content
 func TestHookScriptContent(t *testing.T) {
+	hookScript := fmt.Sprintf(hookScriptFmt, "commit-gen")
+
 	expectedKeywords := []string{
 		"bash",
 		"commit-gen",
@@ -247,7 +222,6 @@ func TestHookScriptContent(t *testing.T) {
 	}
 }
 
-// TestHookName tests hook name constant
 func TestHookName(t *testing.T) {
 	if hookName != "prepare-commit-msg" {
 		t.Errorf("Hook name incorrect: got %q, expected %q", hookName, "prepare-commit-msg")

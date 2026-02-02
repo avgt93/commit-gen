@@ -1,3 +1,4 @@
+// Package hook manages git hook installation and uninstallation.
 package hook
 
 import (
@@ -11,7 +12,6 @@ import (
 
 const hookName = "prepare-commit-msg"
 
-// hookScriptFmt is the content of the git hook (format string)
 const hookScriptFmt = `#!/bin/bash
 # commit-gen git hook
 # Auto-generates commit messages for empty commit messages
@@ -58,7 +58,6 @@ func Install() error {
 		return fmt.Errorf("not in a git repository: %w", err)
 	}
 
-	// Get absolute path to the current executable
 	exe, err := os.Executable()
 	if err != nil {
 		return fmt.Errorf("failed to get executable path: %w", err)
@@ -70,15 +69,12 @@ func Install() error {
 
 	hookPath := filepath.Join(root, ".git", "hooks", hookName)
 
-	// Create hooks directory if it doesn't exist
 	hooksDir := filepath.Dir(hookPath)
 	if err := os.MkdirAll(hooksDir, 0o755); err != nil {
 		return fmt.Errorf("failed to create hooks directory: %w", err)
 	}
 
-	// Check if hook already exists
 	if _, err := os.Stat(hookPath); err == nil {
-		// Hook exists, check if it's ours
 		content, err := os.ReadFile(hookPath)
 		if err == nil && strings.Contains(string(content), "commit-gen") {
 			return fmt.Errorf("hook already installed at %s", hookPath)
@@ -86,10 +82,8 @@ func Install() error {
 		return fmt.Errorf("hook already exists at %s (not installed by commit-gen)", hookPath)
 	}
 
-	// Format the hook script with the absolute path to the executable
 	hookContent := fmt.Sprintf(hookScriptFmt, exePath)
 
-	// Write the hook
 	if err := os.WriteFile(hookPath, []byte(hookContent), 0o755); err != nil {
 		return fmt.Errorf("failed to write hook: %w", err)
 	}
@@ -97,7 +91,6 @@ func Install() error {
 	return nil
 }
 
-// Uninstall removes the git hook from the current repository
 func Uninstall() error {
 	root, err := git.GetRepositoryRoot()
 	if err != nil {
@@ -106,12 +99,10 @@ func Uninstall() error {
 
 	hookPath := filepath.Join(root, ".git", "hooks", hookName)
 
-	// Check if hook exists
 	if _, err := os.Stat(hookPath); os.IsNotExist(err) {
 		return fmt.Errorf("hook not found at %s", hookPath)
 	}
 
-	// Check if it's our hook
 	content, err := os.ReadFile(hookPath)
 	if err != nil {
 		return fmt.Errorf("failed to read hook: %w", err)
@@ -121,7 +112,6 @@ func Uninstall() error {
 		return fmt.Errorf("hook at %s is not a commit-gen hook", hookPath)
 	}
 
-	// Remove the hook
 	if err := os.Remove(hookPath); err != nil {
 		return fmt.Errorf("failed to remove hook: %w", err)
 	}
@@ -129,7 +119,6 @@ func Uninstall() error {
 	return nil
 }
 
-// IsInstalled checks if the hook is installed
 func IsInstalled() (bool, error) {
 	root, err := git.GetRepositoryRoot()
 	if err != nil {

@@ -1,3 +1,4 @@
+// Package git handles git operations like diff and commit messages.
 package git_test
 
 import (
@@ -9,14 +10,12 @@ import (
 	"github.com/avgt93/commit-gen/internal/git"
 )
 
-// setupTestRepo creates a temporary git repository for testing
 func setupTestRepo(t *testing.T) string {
 	tmpDir, err := os.MkdirTemp("", "commit-gen-test-*")
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
 	}
 
-	// Initialize git repo
 	cmd := exec.Command("git", "init")
 	cmd.Dir = tmpDir
 	if err := cmd.Run(); err != nil {
@@ -24,7 +23,6 @@ func setupTestRepo(t *testing.T) string {
 		t.Fatalf("Failed to init git repo: %v", err)
 	}
 
-	// Configure git user
 	cmd = exec.Command("git", "config", "user.email", "test@example.com")
 	cmd.Dir = tmpDir
 	if err := cmd.Run(); err != nil {
@@ -42,12 +40,10 @@ func setupTestRepo(t *testing.T) string {
 	return tmpDir
 }
 
-// TestIntegrationIsGitRepository tests git repository detection
 func TestIntegrationIsGitRepository(t *testing.T) {
 	tmpDir := setupTestRepo(t)
 	defer os.RemoveAll(tmpDir)
 
-	// Save current dir and change to test repo
 	oldCwd, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("Failed to get current directory: %v", err)
@@ -66,7 +62,6 @@ func TestIntegrationIsGitRepository(t *testing.T) {
 	}
 }
 
-// TestIntegrationGetRepositoryRoot tests repository root detection
 func TestIntegrationGetRepositoryRoot(t *testing.T) {
 	tmpDir := setupTestRepo(t)
 	defer os.RemoveAll(tmpDir)
@@ -95,7 +90,6 @@ func TestIntegrationGetRepositoryRoot(t *testing.T) {
 	}
 }
 
-// TestIntegrationGetRepositoryName tests repository name extraction
 func TestIntegrationGetRepositoryName(t *testing.T) {
 	tmpDir := setupTestRepo(t)
 	defer os.RemoveAll(tmpDir)
@@ -124,7 +118,6 @@ func TestIntegrationGetRepositoryName(t *testing.T) {
 	}
 }
 
-// TestIntegrationGetStatus tests git status
 func TestIntegrationGetStatus(t *testing.T) {
 	tmpDir := setupTestRepo(t)
 	defer os.RemoveAll(tmpDir)
@@ -140,13 +133,11 @@ func TestIntegrationGetStatus(t *testing.T) {
 		t.Fatalf("Failed to change directory: %v", err)
 	}
 
-	// Create a test file
 	testFile := filepath.Join(tmpDir, "test.txt")
 	if err := os.WriteFile(testFile, []byte("test content"), 0644); err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
 
-	// Add and commit
 	cmd := exec.Command("git", "add", "test.txt")
 	cmd.Dir = tmpDir
 	if err := cmd.Run(); err != nil {
@@ -172,7 +163,6 @@ func TestIntegrationGetStatus(t *testing.T) {
 	}
 }
 
-// TestIntegrationGetStagedDiff tests getting staged changes
 func TestIntegrationGetStagedDiff(t *testing.T) {
 	tmpDir := setupTestRepo(t)
 	defer os.RemoveAll(tmpDir)
@@ -188,7 +178,6 @@ func TestIntegrationGetStagedDiff(t *testing.T) {
 		t.Fatalf("Failed to change directory: %v", err)
 	}
 
-	// Create initial commit
 	testFile := filepath.Join(tmpDir, "test.txt")
 	if err := os.WriteFile(testFile, []byte("initial"), 0644); err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
@@ -206,7 +195,6 @@ func TestIntegrationGetStagedDiff(t *testing.T) {
 		t.Fatalf("Failed to commit: %v", err)
 	}
 
-	// Make changes and stage them
 	if err := os.WriteFile(testFile, []byte("modified content"), 0644); err != nil {
 		t.Fatalf("Failed to modify file: %v", err)
 	}
@@ -230,7 +218,6 @@ func TestIntegrationGetStagedDiff(t *testing.T) {
 	}
 }
 
-// TestIntegrationHasStagedChanges tests staged changes detection
 func TestIntegrationHasStagedChanges(t *testing.T) {
 	tmpDir := setupTestRepo(t)
 	defer os.RemoveAll(tmpDir)
@@ -246,7 +233,6 @@ func TestIntegrationHasStagedChanges(t *testing.T) {
 		t.Fatalf("Failed to change directory: %v", err)
 	}
 
-	// Initially no staged changes
 	has, err := git.HasStagedChanges()
 	if err != nil {
 		t.Errorf("✗ Failed to check for staged changes: %v", err)
@@ -259,7 +245,6 @@ func TestIntegrationHasStagedChanges(t *testing.T) {
 		t.Log("✓ Correctly detected no staged changes in empty repo")
 	}
 
-	// Create and stage a file
 	testFile := filepath.Join(tmpDir, "test.txt")
 	if err := os.WriteFile(testFile, []byte("content"), 0644); err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
@@ -284,7 +269,6 @@ func TestIntegrationHasStagedChanges(t *testing.T) {
 	}
 }
 
-// TestIntegrationCommitMessageFile tests commit message file operations
 func TestIntegrationCommitMessageFile(t *testing.T) {
 	tmpDir := setupTestRepo(t)
 	defer os.RemoveAll(tmpDir)
@@ -300,7 +284,6 @@ func TestIntegrationCommitMessageFile(t *testing.T) {
 		t.Fatalf("Failed to change directory: %v", err)
 	}
 
-	// Create initial commit for testing
 	testFile := filepath.Join(tmpDir, "test.txt")
 	if err := os.WriteFile(testFile, []byte("content"), 0644); err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
@@ -339,7 +322,6 @@ func TestIntegrationCommitMessageFile(t *testing.T) {
 	}
 }
 
-// TestIntegrationEndToEndFlow tests a complete workflow
 func TestIntegrationEndToEndFlow(t *testing.T) {
 	tmpDir := setupTestRepo(t)
 	defer os.RemoveAll(tmpDir)
@@ -355,25 +337,21 @@ func TestIntegrationEndToEndFlow(t *testing.T) {
 		t.Fatalf("Failed to change directory: %v", err)
 	}
 
-	// Step 1: Verify it's a git repo
 	if !git.IsGitRepository() {
 		t.Fatal("✗ Expected git repository")
 	}
 	t.Log("✓ Step 1: Git repository verified")
 
-	// Step 2: Get repository info
 	root, err := git.GetRepositoryRoot()
 	if err != nil || root == "" {
 		t.Fatalf("✗ Failed to get repository root: %v", err)
 	}
 	t.Logf("✓ Step 2: Repository root: %s", root)
 
-	// Step 3: Create and stage a file
 	testFile := filepath.Join(tmpDir, "feature.go")
 	content := `package main
 
 func NewFeature() {
-	// TODO: implement feature
 }
 `
 	if err := os.WriteFile(testFile, []byte(content), 0644); err != nil {
@@ -387,14 +365,12 @@ func NewFeature() {
 	}
 	t.Log("✓ Step 3: File staged")
 
-	// Step 4: Check for staged changes
 	has, err := git.HasStagedChanges()
 	if err != nil || !has {
 		t.Fatalf("✗ Expected staged changes")
 	}
 	t.Log("✓ Step 4: Staged changes detected")
 
-	// Step 5: Get diff
 	diff, err := git.GetStagedDiff()
 	if err != nil {
 		t.Fatalf("✗ Failed to get diff: %v", err)
@@ -404,7 +380,6 @@ func NewFeature() {
 	}
 	t.Logf("✓ Step 5: Diff retrieved (%d bytes)", len(diff))
 
-	// Step 6: Commit
 	cmd = exec.Command("git", "commit", "-m", "feat: add new feature")
 	cmd.Dir = tmpDir
 	if err := cmd.Run(); err != nil {
@@ -412,7 +387,6 @@ func NewFeature() {
 	}
 	t.Log("✓ Step 6: Changes committed")
 
-	// Step 7: Verify no more staged changes
 	has, err = git.HasStagedChanges()
 	if err != nil || has {
 		t.Error("✗ Expected no staged changes after commit")
@@ -422,7 +396,6 @@ func NewFeature() {
 	t.Log("\n✓ Integration test completed successfully!")
 }
 
-// BenchmarkGetStagedDiff benchmarks the GetStagedDiff function
 func BenchmarkGetStagedDiff(b *testing.B) {
 	tmpDir := setupTestRepo(&testing.T{})
 	defer os.RemoveAll(tmpDir)
@@ -431,7 +404,6 @@ func BenchmarkGetStagedDiff(b *testing.B) {
 	defer os.Chdir(oldCwd)
 	os.Chdir(tmpDir)
 
-	// Create a file with some content
 	testFile := filepath.Join(tmpDir, "large_file.txt")
 	largeContent := make([]byte, 1024*100) // 100KB file
 	for i := 0; i < len(largeContent); i++ {

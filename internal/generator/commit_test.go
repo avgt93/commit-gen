@@ -1,3 +1,4 @@
+// Package generator orchestrates commit message generation.
 package generator
 
 import (
@@ -8,7 +9,6 @@ import (
 	"github.com/avgt93/commit-gen/internal/config"
 )
 
-// TestGeneratorCreation tests creating a new generator
 func TestGeneratorCreation(t *testing.T) {
 	config.Initialize("")
 	cfg := config.Get()
@@ -33,7 +33,6 @@ func TestGeneratorCreation(t *testing.T) {
 	t.Log("✓ Generator created successfully")
 }
 
-// TestStyleGuideConventional tests conventional commit style guide
 func TestStyleGuideConventional(t *testing.T) {
 	guide := getStyleGuide("conventional")
 
@@ -51,7 +50,6 @@ func TestStyleGuideConventional(t *testing.T) {
 	t.Logf("✓ Conventional style guide contains expected content")
 }
 
-// TestStyleGuideImperative tests imperative style guide
 func TestStyleGuideImperative(t *testing.T) {
 	guide := getStyleGuide("imperative")
 
@@ -69,7 +67,6 @@ func TestStyleGuideImperative(t *testing.T) {
 	t.Logf("✓ Imperative style guide contains expected content")
 }
 
-// TestStyleGuideDetailed tests detailed style guide
 func TestStyleGuideDetailed(t *testing.T) {
 	guide := getStyleGuide("detailed")
 
@@ -87,7 +84,6 @@ func TestStyleGuideDetailed(t *testing.T) {
 	t.Logf("✓ Detailed style guide contains expected content")
 }
 
-// TestStyleGuideUnknown tests unknown style defaults to conventional
 func TestStyleGuideUnknown(t *testing.T) {
 	guide := getStyleGuide("unknown-style")
 
@@ -95,7 +91,6 @@ func TestStyleGuideUnknown(t *testing.T) {
 		t.Error("Style guide is empty for unknown style")
 	}
 
-	// Should default to conventional
 	if !contains(guide, "Conventional") {
 		t.Log("Note: Unknown style may not default to conventional")
 	} else {
@@ -103,7 +98,6 @@ func TestStyleGuideUnknown(t *testing.T) {
 	}
 }
 
-// TestBuildPrompt tests prompt building
 func TestBuildPrompt(t *testing.T) {
 	config.Initialize("")
 	cfg := config.Get()
@@ -131,7 +125,6 @@ func TestBuildPrompt(t *testing.T) {
 	t.Logf("✓ Prompt built successfully (%d chars)", len(prompt))
 }
 
-// TestExtractCommitMessageBasic tests extracting a basic message
 func TestExtractCommitMessageBasic(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -154,7 +147,6 @@ func TestExtractCommitMessageBasic(t *testing.T) {
 	}
 }
 
-// TestExtractCommitMessageRemovesMarkdown tests markdown removal
 func TestExtractCommitMessageRemovesMarkdown(t *testing.T) {
 	input := "```\nfeat: add feature\n```\n"
 	expected := "feat: add feature"
@@ -168,7 +160,6 @@ func TestExtractCommitMessageRemovesMarkdown(t *testing.T) {
 	}
 }
 
-// TestExtractCommitMessageTrimsWhitespace tests whitespace trimming
 func TestExtractCommitMessageTrimsWhitespace(t *testing.T) {
 	input := "   \n   feat: add feature   \n   "
 	expected := "feat: add feature"
@@ -182,7 +173,6 @@ func TestExtractCommitMessageTrimsWhitespace(t *testing.T) {
 	}
 }
 
-// TestExtractCommitMessageFirstLineOnly tests first line extraction
 func TestExtractCommitMessageFirstLineOnly(t *testing.T) {
 	input := "feat: main change\nThis is additional info\nMore details here"
 	expected := "feat: main change"
@@ -196,7 +186,6 @@ func TestExtractCommitMessageFirstLineOnly(t *testing.T) {
 	}
 }
 
-// TestAllCommitStyles tests that all three styles are supported
 func TestAllCommitStyles(t *testing.T) {
 	styles := []string{"conventional", "imperative", "detailed"}
 
@@ -210,7 +199,6 @@ func TestAllCommitStyles(t *testing.T) {
 	}
 }
 
-// TestPromptContainsInstructions tests that prompts contain instructions
 func TestPromptContainsInstructions(t *testing.T) {
 	config.Initialize("")
 	cfg := config.Get()
@@ -236,7 +224,6 @@ func TestPromptContainsInstructions(t *testing.T) {
 	t.Log("✓ Prompt contains all required instructions")
 }
 
-// Helper function to check if string contains substring
 func contains(str, substr string) bool {
 	for i := 0; i <= len(str)-len(substr); i++ {
 		if str[i:i+len(substr)] == substr {

@@ -1,3 +1,4 @@
+// Package cache provides in-memory and persistent session caching.
 package cache
 
 import (
@@ -29,7 +30,6 @@ type SessionCache struct {
 var instance *SessionCache
 var once sync.Once
 
-// GetCache returns the singleton cache instance
 func GetCache(ttl time.Duration, cachedir string) *SessionCache {
 	once.Do(func() {
 		instance = &SessionCache{
@@ -42,7 +42,6 @@ func GetCache(ttl time.Duration, cachedir string) *SessionCache {
 	return instance
 }
 
-// Get retrieves a cached session for the current repository
 func (sc *SessionCache) Get() (*CachedSession, error) {
 	sc.mu.RLock()
 	defer sc.mu.RUnlock()
@@ -58,7 +57,6 @@ func (sc *SessionCache) Get() (*CachedSession, error) {
 		return nil, nil
 	}
 
-	// Check if session has expired
 	if time.Since(session.CreatedAt) > sc.ttl {
 		return nil, nil
 	}
@@ -66,7 +64,6 @@ func (sc *SessionCache) Get() (*CachedSession, error) {
 	return session, nil
 }
 
-// Set stores a session in the cache
 func (sc *SessionCache) Set(sessionID string) error {
 	sc.mu.Lock()
 	defer sc.mu.Unlock()
@@ -89,7 +86,6 @@ func (sc *SessionCache) Set(sessionID string) error {
 	return sc.save()
 }
 
-// UpdateLastUsed updates the last used timestamp
 func (sc *SessionCache) UpdateLastUsed(sessionID string) error {
 	sc.mu.Lock()
 	defer sc.mu.Unlock()
@@ -104,7 +100,6 @@ func (sc *SessionCache) UpdateLastUsed(sessionID string) error {
 	return fmt.Errorf("session not found in cache")
 }
 
-// Clear removes all cached sessions
 func (sc *SessionCache) Clear() error {
 	sc.mu.Lock()
 	defer sc.mu.Unlock()
@@ -113,7 +108,6 @@ func (sc *SessionCache) Clear() error {
 	return sc.save()
 }
 
-// Status returns cache statistics
 func (sc *SessionCache) Status() (int, int, error) {
 	sc.mu.RLock()
 	defer sc.mu.RUnlock()
@@ -130,7 +124,6 @@ func (sc *SessionCache) Status() (int, int, error) {
 	return totalEntries, validEntries, nil
 }
 
-// Helper functions
 
 func hashRepoPath(path string) string {
 	hash := md5.Sum([]byte(path))
@@ -142,7 +135,6 @@ func (sc *SessionCache) load() error {
 
 	data, err := os.ReadFile(cacheFile)
 	if err != nil {
-		// Cache file doesn't exist yet, which is fine
 		if os.IsNotExist(err) {
 			return nil
 		}
@@ -159,7 +151,6 @@ func (sc *SessionCache) load() error {
 }
 
 func (sc *SessionCache) save() error {
-	// Ensure cache directory exists
 	if err := os.MkdirAll(sc.cachedir, 0o755); err != nil {
 		return fmt.Errorf("failed to create cache directory: %w", err)
 	}
