@@ -3,12 +3,13 @@ GO=go
 GOFLAGS=-v
 LDFLAGS=-ldflags "-X main.version=0.1.0"
 
-.PHONY: build clean test install help run
+.PHONY: build clean test install help run release
 
 help:
 	@echo "Available targets:"
 	@echo "  make build       - Build the binary"
 	@echo "  make install     - Build and install to /usr/local/bin"
+	@echo "  make release     - Build cross-platform releases"
 	@echo "  make clean       - Remove build artifacts"
 	@echo "  make test        - Run tests"
 	@echo "  make run         - Run the CLI"
@@ -52,3 +53,8 @@ mod-verify:
 	$(GO) mod verify
 
 all: clean build test
+
+release:
+	@echo "Building cross-platform releases..."
+	@./scripts/build-release.sh
+	@echo "✓ Release builds available in dist/"
