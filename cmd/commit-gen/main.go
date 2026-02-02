@@ -6,13 +6,13 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/fatih/color"
-	"github.com/spf13/cobra"
 	"github.com/avgt93/commit-gen/internal/cache"
 	"github.com/avgt93/commit-gen/internal/config"
 	"github.com/avgt93/commit-gen/internal/generator"
 	"github.com/avgt93/commit-gen/internal/git"
 	"github.com/avgt93/commit-gen/internal/hook"
+	"github.com/fatih/color"
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -30,7 +30,7 @@ Simply run 'git commit -m ""' and it will fill in the message for you!`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Default to generate command if no args
 		if len(args) == 0 {
-			generateCmd.Run(cmd, args)
+			cmd.Help()
 		}
 	},
 }

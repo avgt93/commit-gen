@@ -30,9 +30,22 @@ MESSAGE=$(cat "$MESSAGE_FILE" 2>/dev/null)
 
 # Check if message is empty (only whitespace)
 if [ -z "$(echo "$MESSAGE" | xargs)" ]; then
+  # Change to git root directory to ensure git commands work
+  GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+  if [ -z "$GIT_ROOT" ]; then
+    exit 0
+  fi
+  cd "$GIT_ROOT" || exit 0
+  
   # Generate commit message
-  if commit-gen generate --hook > /tmp/commit-gen-msg 2>/dev/null; then
-    cat /tmp/commit-gen-msg > "$MESSAGE_FILE"
+  TMPFILE=$(mktemp)
+  trap "rm -f $TMPFILE" EXIT
+  
+  if commit-gen generate --hook > "$TMPFILE" 2>&1; then
+    # Only write if we got output
+    if [ -s "$TMPFILE" ]; then
+      cat "$TMPFILE" > "$MESSAGE_FILE"
+    fi
   fi
 fi
 

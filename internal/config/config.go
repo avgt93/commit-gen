@@ -41,8 +41,8 @@ func Initialize(cfgFile string) error {
 	viper.SetDefault("opencode.timeout", 30)
 
 	viper.SetDefault("generation.style", "conventional")
-	viper.SetDefault("generation.model.provider", "anthropic")
-	viper.SetDefault("generation.model.model_id", "claude-3-5-sonnet-20241022")
+	viper.SetDefault("generation.model.provider", "google")
+	viper.SetDefault("generation.model.model_id", "antigravity-gemini-3-flash")
 
 	viper.SetDefault("cache.enabled", true)
 	viper.SetDefault("cache.ttl", "24h")
