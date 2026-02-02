@@ -112,9 +112,12 @@ var uninstallCmd = &cobra.Command{
 }
 
 var configCmd = &cobra.Command{
-	Use:   "config",
+	Use: "config",
+
 	Short: "Manage configuration",
-	Long:  `View and modify commit-gen configuration.`,
+
+	Long: `View and modify commit-gen configuration.`,
+
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg := config.Get()
 
