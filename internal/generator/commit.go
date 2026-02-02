@@ -34,7 +34,7 @@ func (g *Generator) Generate() (string, error) {
 
 	if err != nil || !healthy {
 
-		fmt.Printf("%w at %s:%d", ErrServerNotRunning, g.config.OpenCode.Host, g.config.OpenCode.Port)
+		fmt.Printf("%v at %s:%d", ErrServerNotRunning, g.config.OpenCode.Host, g.config.OpenCode.Port)
 		return "", fmt.Errorf("failed to start opencode server: %w", err)
 	}
 
@@ -68,7 +68,9 @@ func (g *Generator) Generate() (string, error) {
 		}
 	}
 
-	g.cache.UpdateLastUsed(sessionID)
+	if err := g.cache.UpdateLastUsed(sessionID); err != nil {
+		fmt.Printf("Warning: failed to update last used: %v\n", err)
+	}
 
 	prompt := g.buildPrompt(diff)
 

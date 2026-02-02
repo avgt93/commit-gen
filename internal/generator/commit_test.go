@@ -10,7 +10,7 @@ import (
 )
 
 func TestGeneratorCreation(t *testing.T) {
-	config.Initialize("")
+	_ = config.Initialize("")
 	cfg := config.Get()
 
 	cacheDir := t.TempDir()
@@ -19,7 +19,7 @@ func TestGeneratorCreation(t *testing.T) {
 	gen := NewGenerator(cfg, sessionCache)
 
 	if gen == nil {
-		t.Error("NewGenerator returned nil")
+		t.Fatal("NewGenerator returned nil")
 	}
 
 	if gen.config == nil {
@@ -99,7 +99,7 @@ func TestStyleGuideUnknown(t *testing.T) {
 }
 
 func TestBuildPrompt(t *testing.T) {
-	config.Initialize("")
+	_ = config.Initialize("")
 	cfg := config.Get()
 
 	cacheDir := t.TempDir()
@@ -200,7 +200,7 @@ func TestAllCommitStyles(t *testing.T) {
 }
 
 func TestPromptContainsInstructions(t *testing.T) {
-	config.Initialize("")
+	_ = config.Initialize("")
 	cfg := config.Get()
 
 	cacheDir := t.TempDir()

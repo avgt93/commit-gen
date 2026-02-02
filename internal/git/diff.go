@@ -13,7 +13,7 @@ func GetStagedDiff() (string, error) {
 	cmd := exec.Command("git", "diff", "--staged")
 	output, err := cmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("Failed to get git diff: %w", err)
+		return "", fmt.Errorf("failed to get git diff: %w", err)
 	}
 	return string(output), nil
 }

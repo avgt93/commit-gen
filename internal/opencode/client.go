@@ -65,7 +65,7 @@ func (c *Client) CheckHealth() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return false, nil
@@ -94,7 +94,7 @@ func (c *Client) CreateSession(title string) (*Session, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create session: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		body, _ := io.ReadAll(resp.Body)
@@ -133,7 +133,7 @@ func (c *Client) SendMessage(sessionID string, message string, model *Model) (st
 	if err != nil {
 		return "", fmt.Errorf("failed to send message: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -159,7 +159,7 @@ func (c *Client) GetSession(sessionID string) (*Session, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get session: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("session not found (status %d)", resp.StatusCode)

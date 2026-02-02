@@ -10,12 +10,12 @@ import (
 
 func TestCacheInitialization(t *testing.T) {
 	tmpDir := filepath.Join(os.TempDir(), "commit-gen-test-cache")
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	cache := GetCache(24*time.Hour, tmpDir)
 
 	if cache == nil {
-		t.Error("GetCache returned nil")
+		t.Fatal("GetCache returned nil")
 	}
 
 	if cache.cache == nil {
@@ -31,7 +31,7 @@ func TestCacheSetAndGet(t *testing.T) {
 	}
 
 	tmpDir := filepath.Join(os.TempDir(), "commit-gen-test-set-get")
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	cache := GetCache(24*time.Hour, tmpDir)
 
@@ -48,7 +48,7 @@ func TestCacheTTLExpiration(t *testing.T) {
 	}
 
 	tmpDir := filepath.Join(os.TempDir(), "commit-gen-test-ttl")
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	shortTTL := 100 * time.Millisecond
 	cache := GetCache(shortTTL, tmpDir)
@@ -66,7 +66,7 @@ func TestCacheUpdateLastUsed(t *testing.T) {
 	}
 
 	tmpDir := filepath.Join(os.TempDir(), "commit-gen-test-update")
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	cache := GetCache(24*time.Hour, tmpDir)
 
@@ -79,7 +79,7 @@ func TestCacheUpdateLastUsed(t *testing.T) {
 
 func TestCacheClear(t *testing.T) {
 	tmpDir := filepath.Join(os.TempDir(), "commit-gen-test-clear")
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	cache := GetCache(24*time.Hour, tmpDir)
 
@@ -103,7 +103,7 @@ func TestCacheClear(t *testing.T) {
 
 func TestCacheStatus(t *testing.T) {
 	tmpDir := filepath.Join(os.TempDir(), "commit-gen-test-status")
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	cache := GetCache(24*time.Hour, tmpDir)
 
@@ -123,12 +123,14 @@ func TestCacheStatus(t *testing.T) {
 
 func TestCachePersistence(t *testing.T) {
 	tmpDir := filepath.Join(os.TempDir(), "commit-gen-test-persist")
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	cache := GetCache(24*time.Hour, tmpDir)
 
-
-	cache.Clear()
+	err := cache.Clear()
+	if err != nil {
+		t.Fatalf("Cache Clear failed: %v", err)
+	}
 
 	t.Logf("✓ Cache persistence setup complete")
 }

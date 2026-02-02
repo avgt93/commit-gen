@@ -2,6 +2,8 @@
 package config
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -58,11 +60,20 @@ func Initialize(cfgFile string) error {
 			viper.AddConfigPath(filepath.Join(homeDir, ".config", "commit-gen"))
 			viper.SetConfigName("config")
 			viper.SetConfigType("yaml")
-			SaveConfig()
+			err := SaveConfig()
+			if err != nil {
+				fmt.Printf("Warning: failed to save config: %v\n", err)
+			}
 		}
 	}
 
-	viper.ReadInConfig()
+	err := viper.ReadInConfig()
+	if err != nil {
+		var configFileNotFoundError viper.ConfigFileNotFoundError
+		if !errors.As(err, &configFileNotFoundError) {
+			return err
+		}
+	}
 
 	viper.SetEnvPrefix("COMMIT_GEN")
 	viper.AutomaticEnv()
@@ -77,7 +88,10 @@ func Initialize(cfgFile string) error {
 
 func Get() *Config {
 	if cfg == nil {
-		Initialize("")
+		err := Initialize("")
+		if err != nil {
+			fmt.Printf("Warning: failed to initialize config: %v\n", err)
+		}
 	}
 	return cfg
 }

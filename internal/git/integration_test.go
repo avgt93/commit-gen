@@ -19,21 +19,21 @@ func setupTestRepo(t *testing.T) string {
 	cmd := exec.Command("git", "init")
 	cmd.Dir = tmpDir
 	if err := cmd.Run(); err != nil {
-		os.RemoveAll(tmpDir)
+		_ = os.RemoveAll(tmpDir)
 		t.Fatalf("Failed to init git repo: %v", err)
 	}
 
 	cmd = exec.Command("git", "config", "user.email", "test@example.com")
 	cmd.Dir = tmpDir
 	if err := cmd.Run(); err != nil {
-		os.RemoveAll(tmpDir)
+		_ = os.RemoveAll(tmpDir)
 		t.Fatalf("Failed to configure git user email: %v", err)
 	}
 
 	cmd = exec.Command("git", "config", "user.name", "Test User")
 	cmd.Dir = tmpDir
 	if err := cmd.Run(); err != nil {
-		os.RemoveAll(tmpDir)
+		_ = os.RemoveAll(tmpDir)
 		t.Fatalf("Failed to configure git user name: %v", err)
 	}
 
@@ -42,13 +42,13 @@ func setupTestRepo(t *testing.T) string {
 
 func TestIntegrationIsGitRepository(t *testing.T) {
 	tmpDir := setupTestRepo(t)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	oldCwd, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("Failed to get current directory: %v", err)
 	}
-	defer os.Chdir(oldCwd)
+	defer func() { _ = os.Chdir(oldCwd) }()
 
 	err = os.Chdir(tmpDir)
 	if err != nil {
@@ -64,13 +64,13 @@ func TestIntegrationIsGitRepository(t *testing.T) {
 
 func TestIntegrationGetRepositoryRoot(t *testing.T) {
 	tmpDir := setupTestRepo(t)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	oldCwd, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("Failed to get current directory: %v", err)
 	}
-	defer os.Chdir(oldCwd)
+	defer func() { _ = os.Chdir(oldCwd) }()
 
 	err = os.Chdir(tmpDir)
 	if err != nil {
@@ -92,13 +92,13 @@ func TestIntegrationGetRepositoryRoot(t *testing.T) {
 
 func TestIntegrationGetRepositoryName(t *testing.T) {
 	tmpDir := setupTestRepo(t)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	oldCwd, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("Failed to get current directory: %v", err)
 	}
-	defer os.Chdir(oldCwd)
+	defer func() { _ = os.Chdir(oldCwd) }()
 
 	err = os.Chdir(tmpDir)
 	if err != nil {
@@ -120,13 +120,13 @@ func TestIntegrationGetRepositoryName(t *testing.T) {
 
 func TestIntegrationGetStatus(t *testing.T) {
 	tmpDir := setupTestRepo(t)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	oldCwd, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("Failed to get current directory: %v", err)
 	}
-	defer os.Chdir(oldCwd)
+	defer func() { _ = os.Chdir(oldCwd) }()
 
 	err = os.Chdir(tmpDir)
 	if err != nil {
@@ -165,13 +165,13 @@ func TestIntegrationGetStatus(t *testing.T) {
 
 func TestIntegrationGetStagedDiff(t *testing.T) {
 	tmpDir := setupTestRepo(t)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	oldCwd, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("Failed to get current directory: %v", err)
 	}
-	defer os.Chdir(oldCwd)
+	defer func() { _ = os.Chdir(oldCwd) }()
 
 	err = os.Chdir(tmpDir)
 	if err != nil {
@@ -220,13 +220,13 @@ func TestIntegrationGetStagedDiff(t *testing.T) {
 
 func TestIntegrationHasStagedChanges(t *testing.T) {
 	tmpDir := setupTestRepo(t)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	oldCwd, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("Failed to get current directory: %v", err)
 	}
-	defer os.Chdir(oldCwd)
+	defer func() { _ = os.Chdir(oldCwd) }()
 
 	err = os.Chdir(tmpDir)
 	if err != nil {
@@ -271,13 +271,13 @@ func TestIntegrationHasStagedChanges(t *testing.T) {
 
 func TestIntegrationCommitMessageFile(t *testing.T) {
 	tmpDir := setupTestRepo(t)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	oldCwd, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("Failed to get current directory: %v", err)
 	}
-	defer os.Chdir(oldCwd)
+	defer func() { _ = os.Chdir(oldCwd) }()
 
 	err = os.Chdir(tmpDir)
 	if err != nil {
@@ -324,13 +324,13 @@ func TestIntegrationCommitMessageFile(t *testing.T) {
 
 func TestIntegrationEndToEndFlow(t *testing.T) {
 	tmpDir := setupTestRepo(t)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	oldCwd, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("Failed to get current directory: %v", err)
 	}
-	defer os.Chdir(oldCwd)
+	defer func() { _ = os.Chdir(oldCwd) }()
 
 	err = os.Chdir(tmpDir)
 	if err != nil {
@@ -398,25 +398,25 @@ func NewFeature() {
 
 func BenchmarkGetStagedDiff(b *testing.B) {
 	tmpDir := setupTestRepo(&testing.T{})
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	oldCwd, _ := os.Getwd()
-	defer os.Chdir(oldCwd)
-	os.Chdir(tmpDir)
+	defer func() { _ = os.Chdir(oldCwd) }()
+	_ = os.Chdir(tmpDir)
 
 	testFile := filepath.Join(tmpDir, "large_file.txt")
 	largeContent := make([]byte, 1024*100) // 100KB file
 	for i := 0; i < len(largeContent); i++ {
 		largeContent[i] = byte((i % 26) + 'a')
 	}
-	os.WriteFile(testFile, largeContent, 0644)
+	_ = os.WriteFile(testFile, largeContent, 0644)
 
 	cmd := exec.Command("git", "add", "large_file.txt")
 	cmd.Dir = tmpDir
-	cmd.Run()
+	_ = cmd.Run()
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		git.GetStagedDiff()
+		_, _ = git.GetStagedDiff()
 	}
 }

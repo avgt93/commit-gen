@@ -27,8 +27,10 @@ type SessionCache struct {
 	cachedir string
 }
 
-var instance *SessionCache
-var once sync.Once
+var (
+	instance *SessionCache
+	once     sync.Once
+)
 
 func GetCache(ttl time.Duration, cachedir string) *SessionCache {
 	once.Do(func() {
@@ -37,7 +39,10 @@ func GetCache(ttl time.Duration, cachedir string) *SessionCache {
 			ttl:      ttl,
 			cachedir: cachedir,
 		}
-		instance.load()
+		err := instance.load()
+		if err != nil {
+			fmt.Printf("Warning: failed to load session cache: %v\n", err)
+		}
 	})
 	return instance
 }
@@ -123,7 +128,6 @@ func (sc *SessionCache) Status() (int, int, error) {
 
 	return totalEntries, validEntries, nil
 }
-
 
 func hashRepoPath(path string) string {
 	hash := md5.Sum([]byte(path))

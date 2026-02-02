@@ -35,7 +35,10 @@ based on your staged git changes using OpenCode's AI capabilities.
 Simply run 'git commit -m ""' and it will fill in the message for you!`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
-			cmd.Help()
+			err := cmd.Help()
+			if err != nil {
+				fmt.Println(err)
+			}
 		}
 	},
 }
@@ -363,7 +366,6 @@ func checkOpenCodeHealth(cfg *config.Config, ignoreCheck bool) error {
 		}
 	}()
 
-	// Give it a moment and recheck health
 	time.Sleep(2 * time.Second)
 
 	healthy, err = client.CheckHealth()
@@ -375,7 +377,7 @@ func checkOpenCodeHealth(cfg *config.Config, ignoreCheck bool) error {
 }
 
 func initConfig() {
-	config.Initialize(cfgFile)
+	_ = config.Initialize(cfgFile)
 }
 
 func main() {

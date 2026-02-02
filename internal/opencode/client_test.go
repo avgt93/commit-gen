@@ -13,7 +13,7 @@ func TestClientCreation(t *testing.T) {
 	client := NewClient("localhost", 4096, 30)
 
 	if client == nil {
-		t.Error("NewClient returned nil")
+		t.Fatal("NewClient returned nil")
 	}
 
 	if client.baseURL != "http://localhost:4096" {
@@ -51,7 +51,7 @@ func TestCheckHealthSuccess(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(HealthResponse{
+		_ = json.NewEncoder(w).Encode(HealthResponse{
 			Healthy: true,
 			Version: "1.0.0",
 		})
@@ -76,7 +76,7 @@ func TestCheckHealthSuccess(t *testing.T) {
 func TestCheckHealthFailure(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(HealthResponse{
+		_ = json.NewEncoder(w).Encode(HealthResponse{
 			Healthy: false,
 			Version: "1.0.0",
 		})
@@ -109,7 +109,7 @@ func TestCreateSessionSuccess(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(Session{
+		_ = json.NewEncoder(w).Encode(Session{
 			ID:    "session-123",
 			Title: "Test Session",
 		})
@@ -134,7 +134,7 @@ func TestCreateSessionSuccess(t *testing.T) {
 func TestSendMessageSuccess(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(Message{
+		_ = json.NewEncoder(w).Encode(Message{
 			Info: struct {
 				ID string `json:"id"`
 			}{ID: "msg-123"},
@@ -171,7 +171,7 @@ func TestSendMessageSuccess(t *testing.T) {
 func TestSendMessageExtractsFirstTextPart(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(Message{
+		_ = json.NewEncoder(w).Encode(Message{
 			Info: struct {
 				ID string `json:"id"`
 			}{ID: "msg-456"},
@@ -202,7 +202,7 @@ func TestSendMessageExtractsFirstTextPart(t *testing.T) {
 func TestGetSessionSuccess(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(Session{
+		_ = json.NewEncoder(w).Encode(Session{
 			ID:    "session-123",
 			Title: "Retrieved Session",
 		})
