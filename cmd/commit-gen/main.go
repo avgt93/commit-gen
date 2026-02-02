@@ -8,11 +8,11 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-	"github.com/yourusername/commit-gen/internal/cache"
-	"github.com/yourusername/commit-gen/internal/config"
-	"github.com/yourusername/commit-gen/internal/generator"
-	"github.com/yourusername/commit-gen/internal/git"
-	"github.com/yourusername/commit-gen/internal/hook"
+	"github.com/avgt93/commit-gen/internal/cache"
+	"github.com/avgt93/commit-gen/internal/config"
+	"github.com/avgt93/commit-gen/internal/generator"
+	"github.com/avgt93/commit-gen/internal/git"
+	"github.com/avgt93/commit-gen/internal/hook"
 )
 
 var (

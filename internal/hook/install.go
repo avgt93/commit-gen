@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/yourusername/commit-gen/internal/git"
+	"github.com/avgt93/commit-gen/internal/git"
 )
 
 const hookName = "prepare-commit-msg"

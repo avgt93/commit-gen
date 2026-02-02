@@ -32,4 +32,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Git repository tests require actual git environment
 - Integration tests require both git repo and OpenCode server
 
-[0.1.0]: https://github.com/yourusername/commit-gen/releases/tag/v0.1.0
+[0.1.0]: https://github.com/avgt93/commit-gen/releases/tag/v0.1.0

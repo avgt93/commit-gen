@@ -1,4 +1,4 @@
-module github.com/yourusername/commit-gen
+module github.com/avgt93/commit-gen
 
 go 1.23.0
 

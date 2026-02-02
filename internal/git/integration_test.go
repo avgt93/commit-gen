@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/yourusername/commit-gen/internal/git"
+	"github.com/avgt93/commit-gen/internal/git"
 )
 
 // setupTestRepo creates a temporary git repository for testing

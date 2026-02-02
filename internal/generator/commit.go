@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/yourusername/commit-gen/internal/cache"
-	"github.com/yourusername/commit-gen/internal/config"
-	"github.com/yourusername/commit-gen/internal/git"
-	"github.com/yourusername/commit-gen/internal/opencode"
+	"github.com/avgt93/commit-gen/internal/cache"
+	"github.com/avgt93/commit-gen/internal/config"
+	"github.com/avgt93/commit-gen/internal/git"
+	"github.com/avgt93/commit-gen/internal/opencode"
 )
 
 // Generator orchestrates the commit message generation

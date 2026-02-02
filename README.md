@@ -16,7 +16,7 @@ A CLI tool that generates descriptive commit messages using OpenCode's AI capabi
 ### From source
 
 ```bash
-git clone https://github.com/yourusername/commit-gen
+git clone https://github.com/avgt93/commit-gen
 cd commit-gen
 go build -o commit-gen ./cmd/commit-gen
 sudo mv commit-gen /usr/local/bin/
@@ -231,7 +231,7 @@ MIT
 ## Support
 
 For issues and questions:
-- GitHub Issues: [submit an issue](https://github.com/yourusername/commit-gen/issues)
+- GitHub Issues: [submit an issue](https://github.com/avgt93/commit-gen/issues)
 - OpenCode Discord: [join the community](https://opencode.ai/discord)
 
 ## Acknowledgments

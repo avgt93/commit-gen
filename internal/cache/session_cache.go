@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/yourusername/commit-gen/internal/git"
+	"github.com/avgt93/commit-gen/internal/git"
 )
 
 type CachedSession struct {

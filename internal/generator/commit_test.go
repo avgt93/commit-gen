@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/yourusername/commit-gen/internal/cache"
-	"github.com/yourusername/commit-gen/internal/config"
+	"github.com/avgt93/commit-gen/internal/cache"
+	"github.com/avgt93/commit-gen/internal/config"
 )
 
 // TestGeneratorCreation tests creating a new generator
