@@ -62,7 +62,7 @@ func Initialize(cfgFile string) error {
 			viper.SetConfigType("yaml")
 			err := SaveConfig()
 			if err != nil {
-				fmt.Printf("Warning: failed to save config: %v\n", err)
+				// fmt.Printf("Warning: failed to save config: %v\n", err)
 			}
 		}
 	}
