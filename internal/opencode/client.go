@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -92,6 +93,9 @@ func (c *Client) CreateSession(title string) (*Session, error) {
 		bytes.NewReader(bodyBytes),
 	)
 	if err != nil {
+		if strings.Contains(err.Error(), "Client.Timeout exceeded") || strings.Contains(err.Error(), "context deadline exceeded") {
+			return nil, fmt.Errorf("create session timed out: %w. Try increasing opencode.timeout in your config", err)
+		}
 		return nil, fmt.Errorf("failed to create session: %w", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
@@ -131,6 +135,9 @@ func (c *Client) SendMessage(sessionID string, message string, model *Model) (st
 		bytes.NewReader(bodyBytes),
 	)
 	if err != nil {
+		if strings.Contains(err.Error(), "Client.Timeout exceeded") || strings.Contains(err.Error(), "context deadline exceeded") {
+			return "", fmt.Errorf("send message timed out: %w. Try increasing opencode.timeout in your config", err)
+		}
 		return "", fmt.Errorf("failed to send message: %w", err)
 	}
 	defer func() { _ = resp.Body.Close() }()

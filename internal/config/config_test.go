@@ -31,7 +31,7 @@ func TestDefaultValues(t *testing.T) {
 	}{
 		{"OpenCode Host", func() interface{} { return cfg.OpenCode.Host }, "localhost"},
 		{"OpenCode Port", func() interface{} { return cfg.OpenCode.Port }, 4096},
-		{"OpenCode Timeout", func() interface{} { return cfg.OpenCode.Timeout }, 30},
+		{"OpenCode Timeout", func() interface{} { return cfg.OpenCode.Timeout }, 120},
 		{"Generation Style", func() interface{} { return cfg.Generation.Style }, "conventional"},
 		{"Generation Provider", func() interface{} { return cfg.Generation.Model.Provider }, "google"},
 		{"Cache Enabled", func() interface{} { return cfg.Cache.Enabled }, true},

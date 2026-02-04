@@ -41,7 +41,7 @@ var cfg *Config
 func Initialize(cfgFile string) error {
 	viper.SetDefault("opencode.host", "localhost")
 	viper.SetDefault("opencode.port", 4096)
-	viper.SetDefault("opencode.timeout", 30)
+	viper.SetDefault("opencode.timeout", 120)
 
 	viper.SetDefault("generation.style", "conventional")
 	viper.SetDefault("generation.model.provider", "google")
