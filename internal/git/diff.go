@@ -92,6 +92,15 @@ func WriteCommitMessage(message string) error {
 	return os.WriteFile(msgFile, []byte(message), 0o644)
 }
 
+func ChangeEditor(editor string) error {
+	cmd := exec.Command("git", "config", "core.editor", editor)
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("failed to change editor: %w", err)
+	}
+	return nil
+}
+
 func ReadCommitMessage() (string, error) {
 	msgFile, err := GetCommitMessageFile()
 	if err != nil {

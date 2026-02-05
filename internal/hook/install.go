@@ -87,6 +87,8 @@ func Install(editor string) error {
 
 	hookContent := fmt.Sprintf(hookScriptFmt, editor, exePath)
 
+	_ = git.ChangeEditor(editor)
+
 	if err := os.WriteFile(hookPath, []byte(hookContent), 0o755); err != nil {
 		return fmt.Errorf("failed to write hook: %w", err)
 	}
