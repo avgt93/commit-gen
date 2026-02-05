@@ -88,7 +88,8 @@ var installCmd = &cobra.Command{
 	Long: `Installs a prepare-commit-msg git hook in the current repository.
 This allows automatic commit message generation when running 'git commit -m ""'.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if err := hook.Install(); err != nil {
+		cfg := config.Get()
+		if err := hook.Install(cfg.Git.Editor); err != nil {
 			color.Red("Error: %v", err)
 			return err
 		}
@@ -133,6 +134,10 @@ var configCmd = &cobra.Command{
 		color.Cyan("\nCache Configuration:")
 		fmt.Printf("  Enabled: %v\n", cfg.Cache.Enabled)
 		fmt.Printf("  TTL: %s\n", cfg.Cache.TTL)
+
+		color.Cyan("\nGit Configuration:")
+		fmt.Printf("  Editor: %s\n", cfg.Git.Editor)
+		fmt.Printf("  Staged Only: %v\n", cfg.Git.StagedOnly)
 
 		return nil
 	},

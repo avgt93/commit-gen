@@ -6,6 +6,7 @@
 *.so.*
 *.dylib
 
+tmp/
 # Binaries from go build
 /commit-gen
 /bin/

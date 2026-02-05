@@ -41,6 +41,9 @@ if [ -z "$MESSAGE" ]; then
   TMPFILE=$(mktemp)
   trap "rm -f $TMPFILE" EXIT
   
+  # Export the configured editor for git commit
+  export GIT_EDITOR="%s"
+  
   if "%s" generate --hook > "$TMPFILE" 2>&1; then
     # Only write if we got output
     if [ -s "$TMPFILE" ]; then
@@ -52,7 +55,7 @@ fi
 exit 0
 `
 
-func Install() error {
+func Install(editor string) error {
 	root, err := git.GetRepositoryRoot()
 	if err != nil {
 		return fmt.Errorf("not in a git repository: %w", err)
@@ -82,7 +85,7 @@ func Install() error {
 		return fmt.Errorf("hook already exists at %s (not installed by commit-gen)", hookPath)
 	}
 
-	hookContent := fmt.Sprintf(hookScriptFmt, exePath)
+	hookContent := fmt.Sprintf(hookScriptFmt, editor, exePath)
 
 	if err := os.WriteFile(hookPath, []byte(hookContent), 0o755); err != nil {
 		return fmt.Errorf("failed to write hook: %w", err)

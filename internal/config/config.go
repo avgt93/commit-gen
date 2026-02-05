@@ -32,7 +32,8 @@ type Config struct {
 	} `mapstructure:"cache"`
 
 	Git struct {
-		StagedOnly bool `mapstructure:"staged_only"`
+		StagedOnly bool   `mapstructure:"staged_only"`
+		Editor     string `mapstructure:"editor"`
 	} `mapstructure:"git"`
 }
 
@@ -51,6 +52,7 @@ func Initialize(cfgFile string) error {
 	viper.SetDefault("cache.ttl", "24h")
 
 	viper.SetDefault("git.staged_only", true)
+	viper.SetDefault("git.editor", "cat")
 
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
@@ -60,10 +62,7 @@ func Initialize(cfgFile string) error {
 			viper.AddConfigPath(filepath.Join(homeDir, ".config", "commit-gen"))
 			viper.SetConfigName("config")
 			viper.SetConfigType("yaml")
-			err := SaveConfig()
-			if err != nil {
-				// fmt.Printf("Warning: failed to save config: %v\n", err)
-			}
+			_ = SaveConfig()
 		}
 	}
 

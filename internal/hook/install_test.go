@@ -21,7 +21,7 @@ func TestInstallUninstall(t *testing.T) {
 
 	_ = Uninstall()
 
-	if err := Install(); err != nil {
+	if err := Install("cat"); err != nil {
 		t.Fatalf("Install failed: %v", err)
 	}
 
@@ -72,7 +72,7 @@ func TestHookContent(t *testing.T) {
 
 	_ = Uninstall()
 
-	if err := Install(); err != nil {
+	if err := Install("cat"); err != nil {
 		t.Fatalf("Install failed: %v", err)
 	}
 
@@ -137,7 +137,7 @@ func TestIsInstalledTrue(t *testing.T) {
 		t.Skip("Not in a git repository, skipping hook tests")
 	}
 
-	if err := Install(); err != nil {
+	if err := Install("cat"); err != nil {
 		t.Fatalf("Install failed: %v", err)
 	}
 
@@ -167,13 +167,12 @@ func TestInstallIdempotent(t *testing.T) {
 
 	_ = Uninstall()
 
-	if err := Install(); err != nil {
+	if err := Install("cat"); err != nil {
 		t.Fatalf("First install failed: %v", err)
 	}
 
 	t.Log("✓ First install succeeded")
-
-	err := Install()
+	err := Install("cat")
 	if err != nil {
 		t.Logf("✓ Second install correctly returns error: %v", err)
 	} else {
@@ -204,7 +203,7 @@ func TestUninstallWithoutInstall(t *testing.T) {
 }
 
 func TestHookScriptContent(t *testing.T) {
-	hookScript := fmt.Sprintf(hookScriptFmt, "commit-gen")
+	hookScript := fmt.Sprintf(hookScriptFmt, "cat", "commit-gen")
 
 	expectedKeywords := []string{
 		"bash",
