@@ -89,6 +89,10 @@ func (g *Generator) Generate() (string, error) {
 	return message, nil
 }
 
+func (g *Generator) GetConfig() *config.Config {
+	return g.config
+}
+
 func (g *Generator) buildPrompt(diff string) string {
 	style := g.config.Generation.Style
 
@@ -119,16 +123,20 @@ func getStyleGuide(style string) string {
 	case "detailed":
 		return `Use a detailed style with scope:
 - Format: type(scope): description
+- Scope should be short. dont write the whole file name. make it short and clear
 - Types: feat, fix, docs, style, refactor, perf, test, chore
 - Include a brief description in the body if needed
-- Example: "feat(auth): add user authentication to login page"`
+- Example: "feat(auth): add user authentication to login page
+- Example if long filenames(eg. client_domain_person_check): "feat(domain): add user authentication to login page"`
 
 	default: // conventional
 		return `Follow the Conventional Commits style:
 - Format: type(scope): description
+- Scope should be short. dont write the whole file name. make it short and clear
 - Types: feat, fix, docs, style, refactor, perf, test, chore
 - Keep the description under 72 characters
-- Example: "feat(auth): add user authentication"`
+- Example: "feat(auth): add user authentication
+- Example if long filenames(eg. client_domain_person_check): "feat(domain): add user authentication to login page"`
 	}
 }
 
