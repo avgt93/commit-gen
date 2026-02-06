@@ -89,6 +89,10 @@ func (g *Generator) Generate() (string, error) {
 	return message, nil
 }
 
+func (g *Generator) GetConfig() *config.Config {
+	return g.config
+}
+
 func (g *Generator) buildPrompt(diff string) string {
 	style := g.config.Generation.Style
 
