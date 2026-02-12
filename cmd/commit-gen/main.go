@@ -26,7 +26,7 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   color.CyanString("commit-gen"),
+	Use:   "commit-gen",
 	Short: color.GreenString("Generate commit messages using OpenCode AI"),
 	Long: color.YellowString(`commit-gen is a CLI tool that generates descriptive commit messages
 based on your staged git changes using OpenCode's AI capabilities.
@@ -43,7 +43,7 @@ Simply run 'git commit -m ""' and it will fill in the message for you!`),
 }
 
 var generateCmd = &cobra.Command{
-	Use:   color.CyanString("generate"),
+	Use:   "generate",
 	Short: color.GreenString("Generate a commit message from staged changes"),
 	Long: color.YellowString(`Generate a commit message from your currently staged git changes.
 The message will be generated using OpenCode's AI based on the diff.`),
@@ -88,7 +88,7 @@ The message will be generated using OpenCode's AI based on the diff.`),
 }
 
 var installCmd = &cobra.Command{
-	Use:   color.CyanString("install"),
+	Use:   "install",
 	Short: color.GreenString("Install git hook for automatic commit message generation"),
 	Long: color.YellowString(`Installs a prepare-commit-msg git hook in the current repository.
 This allows automatic commit message generation when running 'git commit -m ""'.`),
@@ -105,7 +105,7 @@ This allows automatic commit message generation when running 'git commit -m ""'.
 }
 
 var uninstallCmd = &cobra.Command{
-	Use:   color.CyanString("uninstall"),
+	Use:   "uninstall",
 	Short: color.GreenString("Remove the git hook"),
 	Long:  color.YellowString(`Removes the prepare-commit-msg git hook from the current repository.`),
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -119,7 +119,7 @@ var uninstallCmd = &cobra.Command{
 }
 
 var configCmd = &cobra.Command{
-	Use:   color.CyanString("config"),
+	Use:   "config",
 	Short: color.GreenString("Manage configuration"),
 	Long:  color.YellowString(`View and modify commit-gen configuration.`),
 
@@ -151,7 +151,7 @@ var configCmd = &cobra.Command{
 }
 
 var previewCmd = &cobra.Command{
-	Use:   color.CyanString("preview"),
+	Use:   "preview",
 	Short: color.GreenString("Preview changes and generated commit message"),
 	Long:  color.YellowString(`Shows your staged changes and what commit message would be generated.`),
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -198,13 +198,13 @@ var previewCmd = &cobra.Command{
 }
 
 var cacheCmd = &cobra.Command{
-	Use:   color.CyanString("cache"),
+	Use:   "cache",
 	Short: color.GreenString("Manage session cache"),
 	Long:  color.YellowString(`View and manage the OpenCode session cache.`),
 }
 
 var cacheStatusCmd = &cobra.Command{
-	Use:   color.CyanString("status"),
+	Use:   "status",
 	Short: color.GreenString("Show cache status"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cacheDir := filepath.Join(os.Getenv("HOME"), ".cache", "commit-gen")
@@ -226,7 +226,7 @@ var cacheStatusCmd = &cobra.Command{
 }
 
 var cacheClearCmd = &cobra.Command{
-	Use:   color.CyanString("clear"),
+	Use:   "clear",
 	Short: color.GreenString("Clear the session cache"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cacheDir := filepath.Join(os.Getenv("HOME"), ".cache", "commit-gen")
@@ -243,7 +243,7 @@ var cacheClearCmd = &cobra.Command{
 }
 
 var versionCmd = &cobra.Command{
-	Use:   color.CyanString("version"),
+	Use:   "version",
 	Short: color.GreenString("Show version information"),
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("commit-gen version %s\n", version)
@@ -251,7 +251,7 @@ var versionCmd = &cobra.Command{
 }
 
 var healthCmd = &cobra.Command{
-	Use:   color.CyanString("health"),
+	Use:   "health",
 	Short: color.GreenString("Check if the OpenCode backend is available"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg := config.Get()
@@ -308,7 +308,7 @@ var healthCmd = &cobra.Command{
 }
 
 var initConfigCmd = &cobra.Command{
-	Use:   color.CyanString("init"),
+	Use:   "init",
 	Short: color.GreenString("Initialize the configuration file"),
 	Run: func(cmd *cobra.Command, args []string) {
 		if _, err := os.Stat(filepath.Join(os.Getenv("HOME"), ".config", "commit-gen")); err == nil {
