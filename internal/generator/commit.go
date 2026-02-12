@@ -14,37 +14,98 @@ import (
 
 var ErrServerNotRunning = errors.New("opencode server is not running")
 
+// Generator handles commit message generation using either server or run mode.
 type Generator struct {
-	client *opencode.Client
+	client *opencode.Client // Used in server mode
+	runner *opencode.Runner // Used in run mode
 	cache  *cache.SessionCache
 	config *config.Config
+	mode   string // "run" or "server"
 }
 
+// NewGenerator creates a new Generator based on the configured mode.
 func NewGenerator(cfg *config.Config, cacheInstance *cache.SessionCache) *Generator {
-	client := opencode.NewClient(cfg.OpenCode.Host, cfg.OpenCode.Port, cfg.OpenCode.Timeout)
-	return &Generator{
-		client: client,
+	mode := cfg.OpenCode.Mode
+	if mode == "" {
+		mode = "run" // Default to run mode
+	}
+
+	gen := &Generator{
 		cache:  cacheInstance,
 		config: cfg,
+		mode:   mode,
 	}
+
+	if mode == "server" {
+		gen.client = opencode.NewClient(cfg.OpenCode.Host, cfg.OpenCode.Port, cfg.OpenCode.Timeout)
+	} else {
+		gen.runner = opencode.NewRunner(cfg.OpenCode.Timeout)
+	}
+
+	return gen
 }
 
+// GetMode returns the current operation mode ("run" or "server").
+func (g *Generator) GetMode() string {
+	return g.mode
+}
+
+// GetConfig returns the generator's configuration.
+func (g *Generator) GetConfig() *config.Config {
+	return g.config
+}
+
+// Generate creates a commit message from staged changes.
 func (g *Generator) Generate() (string, error) {
-	healthy, err := g.client.CheckHealth()
-
-	if err != nil || !healthy {
-
-		fmt.Printf("%v at %s:%d", ErrServerNotRunning, g.config.OpenCode.Host, g.config.OpenCode.Port)
-		return "", fmt.Errorf("failed to start opencode server: %w", err)
+	// Get diff with size limit
+	maxSize := g.config.Git.MaxDiffSize
+	if maxSize <= 0 {
+		maxSize = git.DefaultMaxDiffSize
 	}
 
-	diff, err := git.GetStagedDiff()
+	diffResult, err := git.GetStagedDiffWithLimit(maxSize)
 	if err != nil {
 		return "", fmt.Errorf("failed to get git diff: %w", err)
 	}
 
-	if strings.TrimSpace(diff) == "" {
+	if strings.TrimSpace(diffResult.Diff) == "" {
 		return "", fmt.Errorf("no staged changes found")
+	}
+
+	if diffResult.IsSummarized {
+		fmt.Printf("Note: Large diff (%d bytes) was summarized for AI processing\n", diffResult.OriginalSize)
+	}
+
+	if g.mode == "server" {
+		return g.generateWithServer(diffResult.Diff, diffResult.IsSummarized)
+	}
+	return g.generateWithRunner(diffResult.Diff, diffResult.IsSummarized)
+}
+
+// generateWithRunner uses the opencode CLI to generate a commit message.
+func (g *Generator) generateWithRunner(diff string, isSummarized bool) (string, error) {
+	prompt := g.buildPrompt(diff, isSummarized)
+
+	model := &opencode.Model{
+		ProviderID: g.config.Generation.Model.Provider,
+		ModelID:    g.config.Generation.Model.ModelID,
+	}
+
+	response, err := g.runner.Generate(prompt, model)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate commit message: %w", err)
+	}
+
+	message := extractCommitMessage(response)
+	return message, nil
+}
+
+// generateWithServer uses the OpenCode HTTP API to generate a commit message.
+func (g *Generator) generateWithServer(diff string, isSummarized bool) (string, error) {
+	healthy, err := g.client.CheckHealth()
+	if err != nil || !healthy {
+		fmt.Printf("%v at %s:%d", ErrServerNotRunning, g.config.OpenCode.Host, g.config.OpenCode.Port)
+		return "", fmt.Errorf("failed to start opencode server: %w", err)
 	}
 
 	var sessionID string
@@ -72,7 +133,7 @@ func (g *Generator) Generate() (string, error) {
 		fmt.Printf("Warning: failed to update last used: %v\n", err)
 	}
 
-	prompt := g.buildPrompt(diff)
+	prompt := g.buildPrompt(diff, isSummarized)
 
 	model := &opencode.Model{
 		ProviderID: g.config.Generation.Model.Provider,
@@ -85,28 +146,30 @@ func (g *Generator) Generate() (string, error) {
 	}
 
 	message := extractCommitMessage(response)
-
 	return message, nil
 }
 
-func (g *Generator) GetConfig() *config.Config {
-	return g.config
-}
-
-func (g *Generator) buildPrompt(diff string) string {
+func (g *Generator) buildPrompt(diff string, isSummarized bool) string {
 	style := g.config.Generation.Style
-
 	styleGuide := getStyleGuide(style)
+
+	var summarizedNote string
+	if isSummarized {
+		summarizedNote = `
+NOTE: The diff below has been summarized because the original was too large.
+Focus on the file list, diff stat, and available code changes to understand the overall changes.
+`
+	}
 
 	prompt := fmt.Sprintf(`You are a git commit message generator. Your task is to generate a concise, meaningful commit message based on the following code changes.
 
 %s
-
+%s
 Generate ONLY the commit message, nothing else. No explanation, no markdown formatting, just the message.
 
 Here are the staged changes:
 
-%s`, styleGuide, diff)
+%s`, styleGuide, summarizedNote, diff)
 
 	return prompt
 }

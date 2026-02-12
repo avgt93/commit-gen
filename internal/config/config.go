@@ -12,6 +12,7 @@ import (
 
 type Config struct {
 	OpenCode struct {
+		Mode    string `mapstructure:"mode"` // "run" (default) or "server"
 		Host    string `mapstructure:"host"`
 		Port    int    `mapstructure:"port"`
 		Timeout int    `mapstructure:"timeout"`
@@ -32,27 +33,30 @@ type Config struct {
 	} `mapstructure:"cache"`
 
 	Git struct {
-		StagedOnly bool   `mapstructure:"staged_only"`
-		Editor     string `mapstructure:"editor"`
+		StagedOnly  bool   `mapstructure:"staged_only"`
+		Editor      string `mapstructure:"editor"`
+		MaxDiffSize int    `mapstructure:"max_diff_size"` // Max diff size in bytes before summarizing (0 = default 32KB)
 	} `mapstructure:"git"`
 }
 
 var cfg *Config
 
 func Initialize(cfgFile string) error {
+	viper.SetDefault("opencode.mode", "run") // "run" (default) or "server"
 	viper.SetDefault("opencode.host", "localhost")
 	viper.SetDefault("opencode.port", 4096)
 	viper.SetDefault("opencode.timeout", 120)
 
 	viper.SetDefault("generation.style", "conventional")
 	viper.SetDefault("generation.model.provider", "google")
-	viper.SetDefault("generation.model.model_id", "antigravity-gemini-3-flash")
+	viper.SetDefault("generation.model.model_id", "antigravity-gemini-3-pro")
 
 	viper.SetDefault("cache.enabled", true)
 	viper.SetDefault("cache.ttl", "24h")
 
 	viper.SetDefault("git.staged_only", true)
 	viper.SetDefault("git.editor", "cat")
+	viper.SetDefault("git.max_diff_size", 32*1024) // 32KB default
 
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)

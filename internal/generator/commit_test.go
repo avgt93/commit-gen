@@ -26,8 +26,14 @@ func TestGeneratorCreation(t *testing.T) {
 		t.Error("Generator config is nil")
 	}
 
-	if gen.client == nil {
-		t.Error("Generator client is nil")
+	// In run mode (default), runner should be set
+	if gen.GetMode() == "run" && gen.runner == nil {
+		t.Error("Generator runner is nil in run mode")
+	}
+
+	// In server mode, client should be set
+	if gen.GetMode() == "server" && gen.client == nil {
+		t.Error("Generator client is nil in server mode")
 	}
 
 	t.Log("✓ Generator created successfully")
@@ -108,7 +114,7 @@ func TestBuildPrompt(t *testing.T) {
 
 	testDiff := "diff --git a/test.go b/test.go\n+++ b/test.go\n@@ -1,3 +1,4 @@"
 
-	prompt := gen.buildPrompt(testDiff)
+	prompt := gen.buildPrompt(testDiff, false)
 
 	if prompt == "" {
 		t.Error("Prompt is empty")
@@ -208,7 +214,7 @@ func TestPromptContainsInstructions(t *testing.T) {
 	gen := NewGenerator(cfg, sessionCache)
 
 	diff := "test diff"
-	prompt := gen.buildPrompt(diff)
+	prompt := gen.buildPrompt(diff, false)
 
 	requiredContent := []string{
 		"commit message",
@@ -222,6 +228,56 @@ func TestPromptContainsInstructions(t *testing.T) {
 	}
 
 	t.Log("✓ Prompt contains all required instructions")
+}
+
+func TestBuildPromptWithSummarized(t *testing.T) {
+	_ = config.Initialize("")
+	cfg := config.Get()
+
+	cacheDir := t.TempDir()
+	sessionCache := cache.GetCache(24*time.Hour, cacheDir)
+	gen := NewGenerator(cfg, sessionCache)
+
+	diff := "test diff"
+	prompt := gen.buildPrompt(diff, true)
+
+	if !contains(prompt, "summarized") {
+		t.Error("Summarized prompt should mention that diff was summarized")
+	}
+
+	t.Log("✓ Summarized prompt contains expected note")
+}
+
+func TestGeneratorModeRunDefault(t *testing.T) {
+	_ = config.Initialize("")
+	cfg := config.Get()
+	cfg.OpenCode.Mode = "" // Empty should default to run
+
+	cacheDir := t.TempDir()
+	sessionCache := cache.GetCache(24*time.Hour, cacheDir)
+	gen := NewGenerator(cfg, sessionCache)
+
+	if gen.GetMode() != "run" {
+		t.Errorf("Expected default mode 'run', got '%s'", gen.GetMode())
+	}
+
+	t.Log("✓ Generator defaults to run mode")
+}
+
+func TestGeneratorModeServer(t *testing.T) {
+	_ = config.Initialize("")
+	cfg := config.Get()
+	cfg.OpenCode.Mode = "server"
+
+	cacheDir := t.TempDir()
+	sessionCache := cache.GetCache(24*time.Hour, cacheDir)
+	gen := NewGenerator(cfg, sessionCache)
+
+	if gen.GetMode() != "server" {
+		t.Errorf("Expected mode 'server', got '%s'", gen.GetMode())
+	}
+
+	t.Log("✓ Generator respects server mode config")
 }
 
 func contains(str, substr string) bool {

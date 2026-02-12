@@ -50,10 +50,17 @@ var generateCmd = &cobra.Command{
 The message will be generated using OpenCode's AI based on the diff.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg := config.Get()
+
+		// Override mode if specified via flag
+		if modeFlag, _ := cmd.Flags().GetString("mode"); modeFlag != "" {
+			cfg.OpenCode.Mode = modeFlag
+		}
+
 		ignoreCheck, _ := cmd.Flags().GetBool("ignore-server-check")
-		if err := checkOpenCodeHealth(cfg, ignoreCheck); err != nil {
+		if err := checkBackendAvailability(cfg, ignoreCheck); err != nil {
 			return err
 		}
+
 		cacheDir := filepath.Join(os.Getenv("HOME"), ".cache", "commit-gen")
 		sessionCache := cache.GetCache(24*time.Hour, cacheDir)
 
@@ -122,8 +129,9 @@ var configCmd = &cobra.Command{
 		cfg := config.Get()
 
 		color.Cyan("OpenCode Configuration:")
-		fmt.Printf("  Host: %s\n", cfg.OpenCode.Host)
-		fmt.Printf("  Port: %d\n", cfg.OpenCode.Port)
+		fmt.Printf("  Mode: %s\n", cfg.OpenCode.Mode)
+		fmt.Printf("  Host: %s (server mode only)\n", cfg.OpenCode.Host)
+		fmt.Printf("  Port: %d (server mode only)\n", cfg.OpenCode.Port)
 		fmt.Printf("  Timeout: %ds\n", cfg.OpenCode.Timeout)
 
 		color.Cyan("\nGeneration Configuration:")
@@ -132,12 +140,13 @@ var configCmd = &cobra.Command{
 		fmt.Printf("  Model: %s\n", cfg.Generation.Model.ModelID)
 
 		color.Cyan("\nCache Configuration:")
-		fmt.Printf("  Enabled: %v\n", cfg.Cache.Enabled)
+		fmt.Printf("  Enabled: %v (server mode only)\n", cfg.Cache.Enabled)
 		fmt.Printf("  TTL: %s\n", cfg.Cache.TTL)
 
 		color.Cyan("\nGit Configuration:")
 		fmt.Printf("  Editor: %s\n", cfg.Git.Editor)
 		fmt.Printf("  Staged Only: %v\n", cfg.Git.StagedOnly)
+		fmt.Printf("  Max Diff Size: %d bytes (%dKB)\n", cfg.Git.MaxDiffSize, cfg.Git.MaxDiffSize/1024)
 
 		return nil
 	},
@@ -165,10 +174,17 @@ var previewCmd = &cobra.Command{
 		color.Cyan("\n=== Generated Commit Message ===")
 
 		cfg := config.Get()
+
+		// Override mode if specified via flag
+		if modeFlag, _ := cmd.Flags().GetString("mode"); modeFlag != "" {
+			cfg.OpenCode.Mode = modeFlag
+		}
+
 		ignoreCheck, _ := cmd.Flags().GetBool("ignore-server-check")
-		if err := checkOpenCodeHealth(cfg, ignoreCheck); err != nil {
+		if err := checkBackendAvailability(cfg, ignoreCheck); err != nil {
 			return err
 		}
+
 		cacheDir := filepath.Join(os.Getenv("HOME"), ".cache", "commit-gen")
 		sessionCache := cache.GetCache(24*time.Hour, cacheDir)
 
@@ -239,7 +255,7 @@ var versionCmd = &cobra.Command{
 
 var healthCmd = &cobra.Command{
 	Use:   "health",
-	Short: "Check if the OpenCode server is running",
+	Short: "Check if the OpenCode backend is available",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg := config.Get()
 
@@ -257,25 +273,38 @@ var healthCmd = &cobra.Command{
 		}
 
 		color.Cyan("Configuration:")
-
+		fmt.Printf("  Mode: %s\n", cfg.OpenCode.Mode)
 		fmt.Printf("  Host: %s\n", cfg.OpenCode.Host)
 		fmt.Printf("  Port: %d\n", cfg.OpenCode.Port)
 		fmt.Printf("  Timeout: %ds\n", cfg.OpenCode.Timeout)
 		fmt.Printf("  Cache: %v\n", cfg.Cache.Enabled)
+		fmt.Printf("  Max Diff Size: %d bytes\n", cfg.Git.MaxDiffSize)
 
-		color.Cyan("OpenCode Health Check:")
-		client := opencode.NewClient(cfg.OpenCode.Host, cfg.OpenCode.Port, cfg.OpenCode.Timeout)
+		color.Cyan("OpenCode Backend Check:")
 
-		healthy, err := client.CheckHealth()
-		if err != nil {
-			color.Red("✗ OpenCode server is not running")
-			return err
-		}
+		if cfg.OpenCode.Mode == "server" {
+			client := opencode.NewClient(cfg.OpenCode.Host, cfg.OpenCode.Port, cfg.OpenCode.Timeout)
 
-		if healthy {
-			color.Green("✓ OpenCode server is running")
+			healthy, err := client.CheckHealth()
+			if err != nil {
+				color.Red("✗ OpenCode server is not running")
+				return err
+			}
+
+			if healthy {
+				color.Green("✓ OpenCode server is running")
+			} else {
+				color.Red("✗ OpenCode server is not running")
+			}
 		} else {
-			color.Red("✗ OpenCode server is not running")
+			// Run mode - check if opencode binary is available
+			runner := opencode.NewRunner(cfg.OpenCode.Timeout)
+			available, err := runner.CheckAvailable()
+			if err != nil || !available {
+				color.Red("✗ opencode binary not found in PATH")
+				return err
+			}
+			color.Green("✓ opencode binary is available (run mode)")
 		}
 
 		return nil
@@ -318,18 +347,44 @@ func init() {
 	rootCmd.AddCommand(cacheCmd)
 
 	generateCmd.Flags().StringP("style", "s", "conventional", "Commit message style (conventional, imperative, detailed)")
+	generateCmd.Flags().StringP("mode", "m", "", "Operation mode: 'run' (default) or 'server'")
 	generateCmd.Flags().Bool("dry-run", false, "Show message without writing to git")
 	generateCmd.Flags().Bool("hook", false, "Internal flag for git hook usage")
-	generateCmd.Flags().Bool("ignore-server-check", false, "Skip checking if OpenCode server is running")
+	generateCmd.Flags().Bool("ignore-server-check", false, "Skip checking if OpenCode backend is available")
 
-	previewCmd.Flags().Bool("ignore-server-check", false, "Skip checking if OpenCode server is running")
+	previewCmd.Flags().StringP("mode", "m", "", "Operation mode: 'run' (default) or 'server'")
+	previewCmd.Flags().Bool("ignore-server-check", false, "Skip checking if OpenCode backend is available")
 }
 
-func checkOpenCodeHealth(cfg *config.Config, ignoreCheck bool) error {
+// checkBackendAvailability checks if the appropriate backend is available based on mode.
+func checkBackendAvailability(cfg *config.Config, ignoreCheck bool) error {
 	if ignoreCheck {
 		return nil
 	}
 
+	mode := cfg.OpenCode.Mode
+	if mode == "" {
+		mode = "run"
+	}
+
+	if mode == "server" {
+		return checkOpenCodeHealth(cfg)
+	}
+	return checkOpenCodeRunner()
+}
+
+// checkOpenCodeRunner verifies that the opencode binary is available.
+func checkOpenCodeRunner() error {
+	runner := opencode.NewRunner(10) // Short timeout just for check
+	available, err := runner.CheckAvailable()
+	if err != nil || !available {
+		return fmt.Errorf("opencode binary not found in PATH. Please install opencode first")
+	}
+	return nil
+}
+
+// checkOpenCodeHealth checks if the OpenCode server is running and starts it if needed.
+func checkOpenCodeHealth(cfg *config.Config) error {
 	client := opencode.NewClient(
 		cfg.OpenCode.Host,
 		cfg.OpenCode.Port,
