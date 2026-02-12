@@ -59,7 +59,6 @@ func TestCheckAvailableExistingCommand(t *testing.T) {
 	runner := NewRunner(10)
 
 	available, err := runner.CheckAvailable()
-
 	if err != nil {
 		t.Logf("Note: CheckAvailable returned error (may be expected in test env): %v", err)
 	}
@@ -90,7 +89,7 @@ func TestCheckAvailableWithTimeout(t *testing.T) {
 func TestRunnerTimeoutType(t *testing.T) {
 	runner := NewRunner(15)
 
-	var expectedDuration time.Duration = 15 * time.Second
+	expectedDuration := 15 * time.Second
 
 	if runner.timeout != expectedDuration {
 		t.Errorf("Timeout type mismatch: got %T with value %v", runner.timeout, runner.timeout)
