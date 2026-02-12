@@ -1,4 +1,3 @@
-// Package generator orchestrates commit message generation.
 package generator
 
 import (
@@ -14,20 +13,28 @@ import (
 
 var ErrServerNotRunning = errors.New("opencode server is not running")
 
-// Generator handles commit message generation using either server or run mode.
+/**
+ * Generator handles commit message generation using either server or run mode.
+ */
 type Generator struct {
-	client *opencode.Client // Used in server mode
-	runner *opencode.Runner // Used in run mode
+	client *opencode.Client
+	runner *opencode.Runner
 	cache  *cache.SessionCache
 	config *config.Config
-	mode   string // "run" or "server"
+	mode   string
 }
 
-// NewGenerator creates a new Generator based on the configured mode.
+/**
+ * NewGenerator creates a new Generator based on the configured mode.
+ *
+ * @param cfg - The application configuration
+ * @param cacheInstance - The session cache for server mode
+ * @returns A new Generator instance
+ */
 func NewGenerator(cfg *config.Config, cacheInstance *cache.SessionCache) *Generator {
 	mode := cfg.OpenCode.Mode
 	if mode == "" {
-		mode = "run" // Default to run mode
+		mode = "run"
 	}
 
 	gen := &Generator{
@@ -45,19 +52,31 @@ func NewGenerator(cfg *config.Config, cacheInstance *cache.SessionCache) *Genera
 	return gen
 }
 
-// GetMode returns the current operation mode ("run" or "server").
+/**
+ * GetMode returns the current operation mode.
+ *
+ * @returns "run" or "server"
+ */
 func (g *Generator) GetMode() string {
 	return g.mode
 }
 
-// GetConfig returns the generator's configuration.
+/**
+ * GetConfig returns the generator's configuration.
+ *
+ * @returns The Config instance
+ */
 func (g *Generator) GetConfig() *config.Config {
 	return g.config
 }
 
-// Generate creates a commit message from staged changes.
+/**
+ * Generate creates a commit message from staged changes.
+ *
+ * @returns The generated commit message
+ * @returns An error if generation fails
+ */
 func (g *Generator) Generate() (string, error) {
-	// Get diff with size limit
 	maxSize := g.config.Git.MaxDiffSize
 	if maxSize <= 0 {
 		maxSize = git.DefaultMaxDiffSize
@@ -82,7 +101,6 @@ func (g *Generator) Generate() (string, error) {
 	return g.generateWithRunner(diffResult.Diff, diffResult.IsSummarized)
 }
 
-// generateWithRunner uses the opencode CLI to generate a commit message.
 func (g *Generator) generateWithRunner(diff string, isSummarized bool) (string, error) {
 	prompt := g.buildPrompt(diff, isSummarized)
 
@@ -100,7 +118,6 @@ func (g *Generator) generateWithRunner(diff string, isSummarized bool) (string, 
 	return message, nil
 }
 
-// generateWithServer uses the OpenCode HTTP API to generate a commit message.
 func (g *Generator) generateWithServer(diff string, isSummarized bool) (string, error) {
 	healthy, err := g.client.CheckHealth()
 	if err != nil || !healthy {
@@ -149,6 +166,13 @@ func (g *Generator) generateWithServer(diff string, isSummarized bool) (string, 
 	return message, nil
 }
 
+/**
+ * buildPrompt creates the AI prompt with diff and style instructions.
+ *
+ * @param diff - The git diff to include in the prompt
+ * @param isSummarized - Whether the diff was summarized due to size
+ * @returns The complete prompt string
+ */
 func (g *Generator) buildPrompt(diff string, isSummarized bool) string {
 	style := g.config.Generation.Style
 	styleGuide := getStyleGuide(style)
@@ -174,6 +198,12 @@ Here are the staged changes:
 	return prompt
 }
 
+/**
+ * getStyleGuide returns the prompt instructions for the specified style.
+ *
+ * @param style - The commit style (conventional, imperative, detailed)
+ * @returns The style guide instructions
+ */
 func getStyleGuide(style string) string {
 	switch style {
 	case "imperative":
@@ -192,7 +222,7 @@ func getStyleGuide(style string) string {
 - Example: "feat(auth): add user authentication to login page
 - Example if long filenames(eg. client_domain_person_check): "feat(domain): add user authentication to login page"`
 
-	default: // conventional
+	default:
 		return `Follow the Conventional Commits style:
 - Format: type(scope): description
 - Scope should be short. dont write the whole file name. make it short and clear
@@ -203,6 +233,12 @@ func getStyleGuide(style string) string {
 	}
 }
 
+/**
+ * extractCommitMessage extracts the clean commit message from AI response.
+ *
+ * @param response - The raw AI response
+ * @returns The cleaned commit message (first line only)
+ */
 func extractCommitMessage(response string) string {
 	response = strings.TrimSpace(response)
 

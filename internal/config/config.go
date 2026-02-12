@@ -1,4 +1,3 @@
-// Package config provides loading and parsing of YAML configuration.
 package config
 
 import (
@@ -10,9 +9,12 @@ import (
 	"github.com/spf13/viper"
 )
 
+/**
+ * Config holds all configuration settings for commit-gen.
+ */
 type Config struct {
 	OpenCode struct {
-		Mode    string `mapstructure:"mode"` // "run" (default) or "server"
+		Mode    string `mapstructure:"mode"`
 		Host    string `mapstructure:"host"`
 		Port    int    `mapstructure:"port"`
 		Timeout int    `mapstructure:"timeout"`
@@ -35,14 +37,20 @@ type Config struct {
 	Git struct {
 		StagedOnly  bool   `mapstructure:"staged_only"`
 		Editor      string `mapstructure:"editor"`
-		MaxDiffSize int    `mapstructure:"max_diff_size"` // Max diff size in bytes before summarizing (0 = default 32KB)
+		MaxDiffSize int    `mapstructure:"max_diff_size"`
 	} `mapstructure:"git"`
 }
 
 var cfg *Config
 
+/**
+ * Initialize loads and parses the configuration from file, environment, and defaults.
+ *
+ * @param cfgFile - Path to a specific config file, or empty for default locations
+ * @returns An error if config loading fails
+ */
 func Initialize(cfgFile string) error {
-	viper.SetDefault("opencode.mode", "run") // "run" (default) or "server"
+	viper.SetDefault("opencode.mode", "run")
 	viper.SetDefault("opencode.host", "localhost")
 	viper.SetDefault("opencode.port", 4096)
 	viper.SetDefault("opencode.timeout", 120)
@@ -56,7 +64,7 @@ func Initialize(cfgFile string) error {
 
 	viper.SetDefault("git.staged_only", true)
 	viper.SetDefault("git.editor", "cat")
-	viper.SetDefault("git.max_diff_size", 32*1024) // 32KB default
+	viper.SetDefault("git.max_diff_size", 32*1024)
 
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
@@ -89,6 +97,11 @@ func Initialize(cfgFile string) error {
 	return nil
 }
 
+/**
+ * Get returns the current configuration, initializing it if necessary.
+ *
+ * @returns The current Config instance
+ */
 func Get() *Config {
 	if cfg == nil {
 		err := Initialize("")
@@ -99,22 +112,51 @@ func Get() *Config {
 	return cfg
 }
 
+/**
+ * GetString retrieves a string value from the configuration.
+ *
+ * @param key - The configuration key to retrieve
+ * @returns The string value for the given key
+ */
 func GetString(key string) string {
 	return viper.GetString(key)
 }
 
+/**
+ * GetInt retrieves an integer value from the configuration.
+ *
+ * @param key - The configuration key to retrieve
+ * @returns The integer value for the given key
+ */
 func GetInt(key string) int {
 	return viper.GetInt(key)
 }
 
+/**
+ * GetBool retrieves a boolean value from the configuration.
+ *
+ * @param key - The configuration key to retrieve
+ * @returns The boolean value for the given key
+ */
 func GetBool(key string) bool {
 	return viper.GetBool(key)
 }
 
+/**
+ * Set sets a configuration value.
+ *
+ * @param key - The configuration key to set
+ * @param value - The value to set for the key
+ */
 func Set(key string, value interface{}) {
 	viper.Set(key, value)
 }
 
+/**
+ * SaveConfig writes the current configuration to file.
+ *
+ * @returns An error if writing fails
+ */
 func SaveConfig() error {
 	return viper.WriteConfig()
 }

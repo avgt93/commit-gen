@@ -1,4 +1,3 @@
-// Package main is the CLI entry point for commit-gen.
 package main
 
 import (
@@ -51,7 +50,6 @@ The message will be generated using OpenCode's AI based on the diff.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg := config.Get()
 
-		// Override mode if specified via flag
 		if modeFlag, _ := cmd.Flags().GetString("mode"); modeFlag != "" {
 			cfg.OpenCode.Mode = modeFlag
 		}
@@ -175,7 +173,6 @@ var previewCmd = &cobra.Command{
 
 		cfg := config.Get()
 
-		// Override mode if specified via flag
 		if modeFlag, _ := cmd.Flags().GetString("mode"); modeFlag != "" {
 			cfg.OpenCode.Mode = modeFlag
 		}
@@ -297,7 +294,6 @@ var healthCmd = &cobra.Command{
 				color.Red("✗ OpenCode server is not running")
 			}
 		} else {
-			// Run mode - check if opencode binary is available
 			runner := opencode.NewRunner(cfg.OpenCode.Timeout)
 			available, err := runner.CheckAvailable()
 			if err != nil || !available {
@@ -356,7 +352,13 @@ func init() {
 	previewCmd.Flags().Bool("ignore-server-check", false, "Skip checking if OpenCode backend is available")
 }
 
-// checkBackendAvailability checks if the appropriate backend is available based on mode.
+/**
+ * checkBackendAvailability checks if the appropriate backend is available based on mode.
+ *
+ * @param cfg - The application configuration
+ * @param ignoreCheck - If true, skip the check
+ * @returns An error if the backend is not available
+ */
 func checkBackendAvailability(cfg *config.Config, ignoreCheck bool) error {
 	if ignoreCheck {
 		return nil
@@ -373,9 +375,13 @@ func checkBackendAvailability(cfg *config.Config, ignoreCheck bool) error {
 	return checkOpenCodeRunner()
 }
 
-// checkOpenCodeRunner verifies that the opencode binary is available.
+/**
+ * checkOpenCodeRunner verifies that the opencode binary is available in PATH.
+ *
+ * @returns An error if the binary is not found
+ */
 func checkOpenCodeRunner() error {
-	runner := opencode.NewRunner(10) // Short timeout just for check
+	runner := opencode.NewRunner(10)
 	available, err := runner.CheckAvailable()
 	if err != nil || !available {
 		return fmt.Errorf("opencode binary not found in PATH. Please install opencode first")
@@ -383,7 +389,12 @@ func checkOpenCodeRunner() error {
 	return nil
 }
 
-// checkOpenCodeHealth checks if the OpenCode server is running and starts it if needed.
+/**
+ * checkOpenCodeHealth checks if the OpenCode server is running and starts it if needed.
+ *
+ * @param cfg - The application configuration
+ * @returns An error if the server is not running and cannot be started
+ */
 func checkOpenCodeHealth(cfg *config.Config) error {
 	client := opencode.NewClient(
 		cfg.OpenCode.Host,
@@ -436,10 +447,16 @@ func checkOpenCodeHealth(cfg *config.Config) error {
 	return nil
 }
 
+/**
+ * initConfig initializes the configuration at startup.
+ */
 func initConfig() {
 	_ = config.Initialize(cfgFile)
 }
 
+/**
+ * main is the entry point for the CLI application.
+ */
 func main() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
