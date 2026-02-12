@@ -26,12 +26,12 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "commit-gen",
-	Short: "Generate commit messages using OpenCode AI",
-	Long: `commit-gen is a CLI tool that generates descriptive commit messages
+	Use:   color.CyanString("commit-gen"),
+	Short: color.GreenString("Generate commit messages using OpenCode AI"),
+	Long: color.YellowString(`commit-gen is a CLI tool that generates descriptive commit messages
 based on your staged git changes using OpenCode's AI capabilities.
 
-Simply run 'git commit -m ""' and it will fill in the message for you!`,
+Simply run 'git commit -m ""' and it will fill in the message for you!`),
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
 			err := cmd.Help()
@@ -43,10 +43,10 @@ Simply run 'git commit -m ""' and it will fill in the message for you!`,
 }
 
 var generateCmd = &cobra.Command{
-	Use:   "generate",
-	Short: "Generate a commit message from staged changes",
-	Long: `Generate a commit message from your currently staged git changes.
-The message will be generated using OpenCode's AI based on the diff.`,
+	Use:   color.CyanString("generate"),
+	Short: color.GreenString("Generate a commit message from staged changes"),
+	Long: color.YellowString(`Generate a commit message from your currently staged git changes.
+The message will be generated using OpenCode's AI based on the diff.`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg := config.Get()
 
@@ -88,10 +88,10 @@ The message will be generated using OpenCode's AI based on the diff.`,
 }
 
 var installCmd = &cobra.Command{
-	Use:   "install",
-	Short: "Install git hook for automatic commit message generation",
-	Long: `Installs a prepare-commit-msg git hook in the current repository.
-This allows automatic commit message generation when running 'git commit -m ""'.`,
+	Use:   color.CyanString("install"),
+	Short: color.GreenString("Install git hook for automatic commit message generation"),
+	Long: color.YellowString(`Installs a prepare-commit-msg git hook in the current repository.
+This allows automatic commit message generation when running 'git commit -m ""'.`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg := config.Get()
 		if err := hook.Install(cfg.Git.Editor); err != nil {
@@ -105,9 +105,9 @@ This allows automatic commit message generation when running 'git commit -m ""'.
 }
 
 var uninstallCmd = &cobra.Command{
-	Use:   "uninstall",
-	Short: "Remove the git hook",
-	Long:  `Removes the prepare-commit-msg git hook from the current repository.`,
+	Use:   color.CyanString("uninstall"),
+	Short: color.GreenString("Remove the git hook"),
+	Long:  color.YellowString(`Removes the prepare-commit-msg git hook from the current repository.`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if err := hook.Uninstall(); err != nil {
 			color.Red("Error: %v", err)
@@ -119,9 +119,9 @@ var uninstallCmd = &cobra.Command{
 }
 
 var configCmd = &cobra.Command{
-	Use:   "config",
-	Short: "Manage configuration",
-	Long:  `View and modify commit-gen configuration.`,
+	Use:   color.CyanString("config"),
+	Short: color.GreenString("Manage configuration"),
+	Long:  color.YellowString(`View and modify commit-gen configuration.`),
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg := config.Get()
@@ -151,9 +151,9 @@ var configCmd = &cobra.Command{
 }
 
 var previewCmd = &cobra.Command{
-	Use:   "preview",
-	Short: "Preview changes and generated commit message",
-	Long:  `Shows your staged changes and what commit message would be generated.`,
+	Use:   color.CyanString("preview"),
+	Short: color.GreenString("Preview changes and generated commit message"),
+	Long:  color.YellowString(`Shows your staged changes and what commit message would be generated.`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		diff, err := git.GetStagedDiff()
 		if err != nil {
@@ -198,14 +198,14 @@ var previewCmd = &cobra.Command{
 }
 
 var cacheCmd = &cobra.Command{
-	Use:   "cache",
-	Short: "Manage session cache",
-	Long:  `View and manage the OpenCode session cache.`,
+	Use:   color.CyanString("cache"),
+	Short: color.GreenString("Manage session cache"),
+	Long:  color.YellowString(`View and manage the OpenCode session cache.`),
 }
 
 var cacheStatusCmd = &cobra.Command{
-	Use:   "status",
-	Short: "Show cache status",
+	Use:   color.CyanString("status"),
+	Short: color.GreenString("Show cache status"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cacheDir := filepath.Join(os.Getenv("HOME"), ".cache", "commit-gen")
 		sessionCache := cache.GetCache(24*time.Hour, cacheDir)
@@ -226,8 +226,8 @@ var cacheStatusCmd = &cobra.Command{
 }
 
 var cacheClearCmd = &cobra.Command{
-	Use:   "clear",
-	Short: "Clear the session cache",
+	Use:   color.CyanString("clear"),
+	Short: color.GreenString("Clear the session cache"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cacheDir := filepath.Join(os.Getenv("HOME"), ".cache", "commit-gen")
 		sessionCache := cache.GetCache(24*time.Hour, cacheDir)
@@ -243,16 +243,16 @@ var cacheClearCmd = &cobra.Command{
 }
 
 var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Show version information",
+	Use:   color.CyanString("version"),
+	Short: color.GreenString("Show version information"),
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("commit-gen version %s\n", version)
 	},
 }
 
 var healthCmd = &cobra.Command{
-	Use:   "health",
-	Short: "Check if the OpenCode backend is available",
+	Use:   color.CyanString("health"),
+	Short: color.GreenString("Check if the OpenCode backend is available"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg := config.Get()
 
@@ -308,8 +308,8 @@ var healthCmd = &cobra.Command{
 }
 
 var initConfigCmd = &cobra.Command{
-	Use:   "init",
-	Short: "Initialize the configuration file",
+	Use:   color.CyanString("init"),
+	Short: color.GreenString("Initialize the configuration file"),
 	Run: func(cmd *cobra.Command, args []string) {
 		if _, err := os.Stat(filepath.Join(os.Getenv("HOME"), ".config", "commit-gen")); err == nil {
 			color.Red("Error: configuration file already exists")
