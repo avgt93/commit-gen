@@ -1,7 +1,8 @@
 BINARY_NAME=commit-gen
 GO=go
 GOFLAGS=-v
-LDFLAGS=-ldflags "-X main.version=0.1.0"
+VERSION=$(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
+LDFLAGS=-ldflags "-s -w -X main.version=$(VERSION)"
 
 .PHONY: build clean test install help run release
 

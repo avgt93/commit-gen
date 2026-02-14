@@ -44,7 +44,8 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: 0
         run: |
-          go build -ldflags="-s -w" -o commit-gen-${{ matrix.suffix }} ./cmd/commit-gen
+          VERSION=${GITHUB_REF_NAME#v}
+          go build -ldflags="-s -w -X main.version=${VERSION}" -o commit-gen-${{ matrix.suffix }} ./cmd/commit-gen
       
       - name: Upload artifact
         uses: actions/upload-artifact@v4
