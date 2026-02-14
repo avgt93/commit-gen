@@ -80,6 +80,12 @@ git:
 
 ## CLI Commands
 
+### `commit-gen init`
+- Creates the configuration file at `~/.config/commit-gen/config.yaml`
+- Should be run once for first-time setup
+- Creates directory and file with default values
+- Shows next steps after initialization
+
 ### `commit-gen generate`
 - Generates a commit message from staged changes
 - Flags:

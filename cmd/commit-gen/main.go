@@ -310,17 +310,36 @@ var healthCmd = &cobra.Command{
 var initConfigCmd = &cobra.Command{
 	Use:   "init",
 	Short: color.GreenString("Initialize the configuration file"),
+	Long: color.YellowString(`Creates a configuration file at ~/.config/commit-gen/config.yaml
+with default settings. Run this command once to set up commit-gen.`),
 	Run: func(cmd *cobra.Command, args []string) {
-		if _, err := os.Stat(filepath.Join(os.Getenv("HOME"), ".config", "commit-gen")); err == nil {
-			color.Red("Error: configuration file already exists")
+		// Check if config already exists
+		if config.ConfigExists() {
+			configPath, _ := config.GetConfigPath()
+			color.Yellow("Configuration file already exists at: %s", configPath)
+			fmt.Println("Use 'commit-gen config' to view current settings.")
 			return
 		}
+
+		// Initialize defaults first
 		if err := config.Initialize(""); err != nil {
-			color.Red("Error: %v", err)
+			color.Red("Error initializing config: %v", err)
 			return
 		}
-		color.Green("✓ Configuration file initialized successfully")
-		fmt.Println("Now you can use: git commit -m \"\"")
+
+		// Create the config file
+		if err := config.CreateConfig(); err != nil {
+			color.Red("Error creating config file: %v", err)
+			return
+		}
+
+		configPath, _ := config.GetConfigPath()
+		color.Green("✓ Configuration file created successfully")
+		fmt.Printf("  Location: %s\n", configPath)
+		fmt.Println("\nNext steps:")
+		fmt.Println("  1. Edit the config file to customize settings (optional)")
+		fmt.Println("  2. Run 'commit-gen install' in your git repository")
+		fmt.Println("  3. Use 'git commit -m \"\"' to generate commit messages")
 	},
 }
 

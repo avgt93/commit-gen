@@ -50,26 +50,34 @@ sudo mv commit-gen /usr/local/bin/
 
 ## Quick Start
 
-### 1. Verify OpenCode is available
+### 1. Initialize commit-gen configuration
+
+```bash
+commit-gen init
+```
+
+This creates a configuration file at `~/.config/commit-gen/config.yaml` with default settings.
+
+### 2. Verify OpenCode is available
 
 ```bash
 commit-gen health
 ```
 
-### 2. Install the git hook in your repository
+### 3. Install the git hook in your repository
 
 ```bash
 cd /path/to/your/repo
 commit-gen install
 ```
 
-### 3. Make changes and stage them
+### 4. Make changes and stage them
 
 ```bash
 git add .
 ```
 
-### 4. Commit with empty message to trigger AI generation
+### 5. Commit with empty message to trigger AI generation
 
 ```bash
 git commit
@@ -122,11 +130,11 @@ commit-gen preview
 ### Configuration Management
 
 ```bash
+# Initialize config file (first-time setup)
+commit-gen init
+
 # View current configuration
 commit-gen config
-
-# Initialize config file
-commit-gen init
 ```
 
 ### Cache Management (Server Mode)
@@ -198,7 +206,7 @@ Configuration hierarchy (highest to lowest priority):
 
 ### Config File
 
-Create `~/.config/commit-gen/config.yaml`:
+Run `commit-gen init` to create the configuration file, or manually create `~/.config/commit-gen/config.yaml`:
 
 ```yaml
 opencode:

@@ -74,7 +74,6 @@ func Initialize(cfgFile string) error {
 			viper.AddConfigPath(filepath.Join(homeDir, ".config", "commit-gen"))
 			viper.SetConfigName("config")
 			viper.SetConfigType("yaml")
-			_ = SaveConfig()
 		}
 	}
 
@@ -159,4 +158,101 @@ func Set(key string, value interface{}) {
  */
 func SaveConfig() error {
 	return viper.WriteConfig()
+}
+
+/**
+ * GetConfigDir returns the configuration directory path.
+ *
+ * @returns The config directory path and any error
+ */
+func GetConfigDir() (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("failed to get home directory: %w", err)
+	}
+	return filepath.Join(homeDir, ".config", "commit-gen"), nil
+}
+
+/**
+ * GetConfigPath returns the full path to the config file.
+ *
+ * @returns The config file path and any error
+ */
+func GetConfigPath() (string, error) {
+	configDir, err := GetConfigDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(configDir, "config.yaml"), nil
+}
+
+/**
+ * ConfigExists checks if the configuration file exists.
+ *
+ * @returns true if the config file exists, false otherwise
+ */
+func ConfigExists() bool {
+	configPath, err := GetConfigPath()
+	if err != nil {
+		return false
+	}
+	_, err = os.Stat(configPath)
+	return err == nil
+}
+
+/**
+ * CreateConfig creates the configuration directory and file with default values.
+ *
+ * @returns An error if creation fails
+ */
+func CreateConfig() error {
+	configDir, err := GetConfigDir()
+	if err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
+		return fmt.Errorf("failed to create config directory: %w", err)
+	}
+
+	configPath, err := GetConfigPath()
+	if err != nil {
+		return err
+	}
+
+	defaultConfig := `# commit-gen configuration file
+# See https://github.com/avgt93/commit-gen for documentation
+
+opencode:
+  mode: run              # "run" (default) or "server"
+  host: localhost        # server mode only
+  port: 4096             # server mode only
+  timeout: 120           # timeout in seconds
+
+generation:
+  style: conventional    # conventional, imperative, detailed
+  model:
+    provider: google
+    model_id: antigravity-gemini-3-pro
+
+cache:
+  enabled: true          # server mode only
+  ttl: 24h
+
+git:
+  staged_only: true
+  editor: cat
+  max_diff_size: 32768   # bytes before summarizing (32KB default)
+`
+
+	if err := os.WriteFile(configPath, []byte(defaultConfig), 0o644); err != nil {
+		return fmt.Errorf("failed to write config file: %w", err)
+	}
+
+	viper.SetConfigFile(configPath)
+	if err := viper.ReadInConfig(); err != nil {
+		return fmt.Errorf("failed to read new config: %w", err)
+	}
+
+	return nil
 }
