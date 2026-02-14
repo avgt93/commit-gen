@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
-	"syscall"
 	"time"
 
 	"github.com/avgt93/commit-gen/internal/config"
@@ -108,9 +107,7 @@ func checkOpenCodeHealth(cfg *config.Config) error {
 		"--port", strconv.Itoa(cfg.OpenCode.Port),
 	)
 
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Setpgid: true,
-	}
+	setSysProcAttr(cmd)
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
