@@ -92,7 +92,7 @@ func (g *Generator) Generate() (string, error) {
 	}
 
 	if diffResult.IsSummarized {
-		fmt.Printf("Note: Large diff (%d bytes) was summarized for AI processing\n", diffResult.OriginalSize)
+		// return "", fmt.Errorf("note: Large diff (%d bytes) was summarized for AI processing", diffResult.OriginalSize)
 	}
 
 	if g.mode == "server" {
