@@ -91,9 +91,9 @@ func (g *Generator) Generate() (string, error) {
 		return "", fmt.Errorf("no staged changes found")
 	}
 
-	if diffResult.IsSummarized {
-		// return "", fmt.Errorf("note: Large diff (%d bytes) was summarized for AI processing", diffResult.OriginalSize)
-	}
+	// if diffResult.IsSummarized {
+	// return "", fmt.Errorf("note: Large diff (%d bytes) was summarized for AI processing", diffResult.OriginalSize)
+	// }
 
 	if g.mode == "server" {
 		return g.generateWithServer(diffResult.Diff, diffResult.IsSummarized)
