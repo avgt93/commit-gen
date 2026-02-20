@@ -123,19 +123,16 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	isHook, _ := cmd.Flags().GetBool("hook")
 	noConfirm, _ := cmd.Flags().GetBool("no-confirm")
 
-	// Hook mode: just output the message for git to use
 	if isHook {
 		fmt.Println(message)
 		return nil
 	}
 
-	// Dry run mode: just show the message
 	if dryRun {
 		fmt.Println(message)
 		return nil
 	}
 
-	// Determine if we should confirm
 	shouldConfirm := cfg.Generation.Confirm && !noConfirm
 
 	if shouldConfirm {
@@ -189,7 +186,6 @@ func confirmMessage(message string, cfg *config.Config) (string, error) {
 			return edited, nil
 
 		case "r", "regenerate":
-			// Return special marker to trigger regeneration
 			return "", fmt.Errorf("regenerate requested")
 
 		case "c", "cancel", "n", "no":
@@ -203,7 +199,6 @@ func confirmMessage(message string, cfg *config.Config) (string, error) {
 
 // editMessage opens the user's editor to edit the commit message.
 func editMessage(message string, cfg *config.Config) (string, error) {
-	// Create a temporary file with the message
 	tmpFile, err := os.CreateTemp("", "commit-msg-*.txt")
 	if err != nil {
 		return "", fmt.Errorf("failed to create temp file: %w", err)
@@ -217,7 +212,6 @@ func editMessage(message string, cfg *config.Config) (string, error) {
 	}
 	tmpFile.Close()
 
-	// Get the editor: config > $EDITOR > $VISUAL > vim
 	editor := cfg.Git.Editor
 	if editor == "" || editor == "cat" {
 		editor = os.Getenv("EDITOR")
@@ -229,7 +223,6 @@ func editMessage(message string, cfg *config.Config) (string, error) {
 		editor = "vim"
 	}
 
-	// Open the editor
 	cmd := exec.Command(editor, tmpPath)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
@@ -239,7 +232,6 @@ func editMessage(message string, cfg *config.Config) (string, error) {
 		return "", fmt.Errorf("editor failed: %w", err)
 	}
 
-	// Read the edited message
 	edited, err := os.ReadFile(tmpPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to read edited message: %w", err)

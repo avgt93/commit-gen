@@ -14,7 +14,6 @@ import (
 )
 
 var (
-	// version is set at build time via ldflags from git tag
 	version = "dev"
 	cfgFile string
 )
