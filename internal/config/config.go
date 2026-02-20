@@ -21,8 +21,9 @@ type Config struct {
 	} `mapstructure:"opencode"`
 
 	Generation struct {
-		Style string `mapstructure:"style"`
-		Model struct {
+		Style   string `mapstructure:"style"`
+		Confirm bool   `mapstructure:"confirm"`
+		Model   struct {
 			Provider string `mapstructure:"provider"`
 			ModelID  string `mapstructure:"model_id"`
 		} `mapstructure:"model"`
@@ -56,14 +57,15 @@ func Initialize(cfgFile string) error {
 	viper.SetDefault("opencode.timeout", 120)
 
 	viper.SetDefault("generation.style", "conventional")
-	viper.SetDefault("generation.model.provider", "google")
-	viper.SetDefault("generation.model.model_id", "antigravity-gemini-3-pro")
+	viper.SetDefault("generation.confirm", true)
+	viper.SetDefault("generation.model.provider", "opencode")
+	viper.SetDefault("generation.model.model_id", "gpt-5-nano")
 
 	viper.SetDefault("cache.enabled", true)
 	viper.SetDefault("cache.ttl", "24h")
 
 	viper.SetDefault("git.staged_only", true)
-	viper.SetDefault("git.editor", "cat")
+	viper.SetDefault("git.editor", "")
 	viper.SetDefault("git.max_diff_size", 32*1024)
 
 	if cfgFile != "" {
@@ -231,9 +233,10 @@ opencode:
 
 generation:
   style: conventional    # conventional, imperative, detailed
+  confirm: true          # prompt to confirm/edit message before committing
   model:
-    provider: google
-    model_id: antigravity-gemini-3-pro
+    provider: opencode
+    model_id: gpt-5-nano
 
 cache:
   enabled: true          # server mode only
@@ -241,7 +244,7 @@ cache:
 
 git:
   staged_only: true
-  editor: cat
+  editor: ""               # editor for commit messages (defaults to $EDITOR or vim)
   max_diff_size: 32768   # bytes before summarizing (32KB default)
 `
 

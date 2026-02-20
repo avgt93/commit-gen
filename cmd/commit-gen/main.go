@@ -53,6 +53,7 @@ func init() {
 
 	generateCmd.Flags().StringP("style", "s", "conventional", "Commit message style (conventional, imperative, detailed)")
 	generateCmd.Flags().StringP("mode", "m", "", "Operation mode: 'run' (default) or 'server'")
+	generateCmd.Flags().BoolP("no-confirm", "n", false, "Skip confirmation prompt and use generated message directly")
 	generateCmd.Flags().Bool("dry-run", false, "Show message without writing to git")
 	generateCmd.Flags().Bool("hook", false, "Internal flag for git hook usage")
 	generateCmd.Flags().Bool("ignore-server-check", false, "Skip checking if OpenCode backend is available")
