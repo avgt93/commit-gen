@@ -38,16 +38,18 @@ if [ -z "$MESSAGE" ]; then
   cd "$GIT_ROOT" || exit 0
   
   # Generate commit message
-  TMPFILE=$(mktemp)
-  trap "rm -f $TMPFILE" EXIT
+  GENERATED=$("%s" generate --hook 2>/dev/null)
   
-  # Export the configured editor for git commit
-  export GIT_EDITOR="%s"
-  
-  if "%s" generate --hook > "$TMPFILE" 2>&1; then
-    # Only write if we got output
-    if [ -s "$TMPFILE" ]; then
-      cat "$TMPFILE" > "$MESSAGE_FILE"
+  # Only write if we got output
+  if [ -n "$GENERATED" ]; then
+    # Preserve the comment lines from original message file
+    COMMENTS=$(grep '^#' "$MESSAGE_FILE" 2>/dev/null)
+    
+    # Write generated message followed by comments
+    echo "$GENERATED" > "$MESSAGE_FILE"
+    if [ -n "$COMMENTS" ]; then
+      echo "" >> "$MESSAGE_FILE"
+      echo "$COMMENTS" >> "$MESSAGE_FILE"
     fi
   fi
 fi
@@ -55,7 +57,7 @@ fi
 exit 0
 `
 
-func Install(editor string) error {
+func Install() error {
 	root, err := git.GetRepositoryRoot()
 	if err != nil {
 		return fmt.Errorf("not in a git repository: %w", err)
@@ -85,9 +87,7 @@ func Install(editor string) error {
 		return fmt.Errorf("hook already exists at %s (not installed by commit-gen)", hookPath)
 	}
 
-	hookContent := fmt.Sprintf(hookScriptFmt, editor, exePath)
-
-	_ = git.ChangeEditor(editor)
+	hookContent := fmt.Sprintf(hookScriptFmt, exePath)
 
 	if err := os.WriteFile(hookPath, []byte(hookContent), 0o755); err != nil {
 		return fmt.Errorf("failed to write hook: %w", err)

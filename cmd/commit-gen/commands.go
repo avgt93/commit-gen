@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/avgt93/commit-gen/internal/cache"
@@ -118,29 +121,136 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 
 	dryRun, _ := cmd.Flags().GetBool("dry-run")
 	isHook, _ := cmd.Flags().GetBool("hook")
+	noConfirm, _ := cmd.Flags().GetBool("no-confirm")
 
-	if dryRun || isHook {
+	if isHook {
 		fmt.Println(message)
-	} else {
-		if err := git.WriteCommitMessage(message); err != nil {
-			return fmt.Errorf("failed to write commit message: %w", err)
-		}
-		color.Green("✓ Commit message generated:")
-		fmt.Printf("  %s\n", message)
+		return nil
 	}
+
+	if dryRun {
+		fmt.Println(message)
+		return nil
+	}
+
+	shouldConfirm := cfg.Generation.Confirm && !noConfirm
+
+	if shouldConfirm {
+		message, err = confirmMessage(message, cfg)
+		if err != nil {
+			return err
+		}
+		if message == "" {
+			color.Yellow("Commit cancelled")
+			return nil
+		}
+	}
+
+	if err := git.WriteCommitMessage(message); err != nil {
+		return fmt.Errorf("failed to write commit message: %w", err)
+	}
+	color.Green("✓ Commit message generated:")
+	fmt.Printf("  %s\n", message)
 
 	return nil
 }
 
+// confirmMessage prompts the user to confirm, edit, or cancel the message.
+// Returns the final message or empty string if cancelled.
+func confirmMessage(message string, cfg *config.Config) (string, error) {
+	color.Cyan("Generated commit message:")
+	fmt.Printf("  %s\n\n", message)
+
+	for {
+		color.White("[y] Accept  [e] Edit  [r] Regenerate  [c] Cancel")
+		fmt.Print("Choice: ")
+
+		reader := bufio.NewReader(os.Stdin)
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			return "", fmt.Errorf("failed to read input: %w", err)
+		}
+
+		choice := strings.ToLower(strings.TrimSpace(input))
+
+		switch choice {
+		case "y", "yes", "":
+			return message, nil
+
+		case "e", "edit":
+			edited, err := editMessage(message, cfg)
+			if err != nil {
+				color.Red("Error editing message: %v", err)
+				continue
+			}
+			return edited, nil
+
+		case "r", "regenerate":
+			return "", fmt.Errorf("regenerate requested")
+
+		case "c", "cancel", "n", "no":
+			return "", nil
+
+		default:
+			color.Yellow("Invalid choice. Please enter y, e, r, or c.")
+		}
+	}
+}
+
+// editMessage opens the user's editor to edit the commit message.
+func editMessage(message string, cfg *config.Config) (string, error) {
+	tmpFile, err := os.CreateTemp("", "commit-msg-*.txt")
+	if err != nil {
+		return "", fmt.Errorf("failed to create temp file: %w", err)
+	}
+	tmpPath := tmpFile.Name()
+	defer func() {
+		_ = os.Remove(tmpPath)
+	}()
+
+	if _, err := tmpFile.WriteString(message); err != nil {
+		_ = tmpFile.Close()
+		return "", fmt.Errorf("failed to write to temp file: %w", err)
+	}
+	_ = tmpFile.Close()
+
+	editor := cfg.Git.Editor
+	if editor == "" || editor == "cat" {
+		editor = os.Getenv("EDITOR")
+	}
+	if editor == "" {
+		editor = os.Getenv("VISUAL")
+	}
+	if editor == "" {
+		editor = "vim"
+	}
+
+	cmd := exec.Command(editor, tmpPath)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		return "", fmt.Errorf("editor failed: %w", err)
+	}
+
+	edited, err := os.ReadFile(tmpPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to read edited message: %w", err)
+	}
+
+	return strings.TrimSpace(string(edited)), nil
+}
+
 // runInstall installs the git hook.
 func runInstall(cmd *cobra.Command, args []string) error {
-	cfg := config.Get()
-	if err := hook.Install(cfg.Git.Editor); err != nil {
+	if err := hook.Install(); err != nil {
 		color.Red("Error: %v", err)
 		return err
 	}
 	color.Green("✓ Git hook installed successfully")
-	fmt.Println("Now you can use: git commit -m \"\"")
+	fmt.Println("Now you can use: git commit")
+	fmt.Println("The generated message will open in your editor for confirmation.")
 	return nil
 }
 
@@ -166,6 +276,7 @@ func runConfig(cmd *cobra.Command, args []string) error {
 
 	color.Cyan("\nGeneration Configuration:")
 	fmt.Printf("  Style: %s\n", cfg.Generation.Style)
+	fmt.Printf("  Confirm: %v\n", cfg.Generation.Confirm)
 	fmt.Printf("  Provider: %s\n", cfg.Generation.Model.Provider)
 	fmt.Printf("  Model: %s\n", cfg.Generation.Model.ModelID)
 

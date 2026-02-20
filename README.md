@@ -1,6 +1,6 @@
 # commit-gen
 
-A CLI tool that generates descriptive commit messages using OpenCode's AI capabilities. Simply run `git commit -m ""` and let AI analyze your staged changes to create meaningful commit messages.
+A CLI tool that generates descriptive commit messages using OpenCode's AI capabilities. Simply run `git commit` and let AI analyze your staged changes to create meaningful commit messages.
 
 ## Features
 
@@ -8,7 +8,7 @@ A CLI tool that generates descriptive commit messages using OpenCode's AI capabi
 - Dual mode support: run via CLI subprocess or connect to OpenCode server
 - Automatic large diff summarization (handles diffs > 32KB)
 - Multiple commit styles: conventional, imperative, detailed
-- Session caching for faster subsequent commits (server mode)
+- Interactive confirmation: accept, edit, or regenerate messages (CLI and Git Hook)
 - Git hook integration for automatic message generation
 - Highly configurable via YAML, environment variables, or CLI flags
 
@@ -77,10 +77,57 @@ commit-gen install
 git add .
 ```
 
-### 5. Commit with empty message to trigger AI generation
+### 5. Commit and verify the message
 
 ```bash
 git commit
+```
+
+The tool will analyze your staged changes and generate a descriptive commit message automatically. The message will open in your editor (or show a prompt in CLI) for you to review, edit, or regenerate.
+
+## Usage
+
+### Commands
+
+```
+Available Commands:
+  cache       Manage session cache
+  completion  Generate the autocompletion script for the specified shell
+  config      Manage configuration
+  generate    Generate a commit message from staged changes
+  health      Check if the OpenCode backend is available
+  help        Help about any command
+  init        Initialize the configuration file
+  install     Install git hook for automatic commit message generation
+  preview     Preview changes and generated commit message
+  uninstall   Remove the git hook
+  version     Show version information
+```
+
+### Interactive Flow
+
+When running `commit-gen generate` (without `--no-confirm`) or `git commit` with the hook installed:
+
+1. AI analyzes staged changes and generates a message.
+2. An interactive prompt appears (CLI) or editor opens (Git Hook).
+3. Choose to:
+   - **Accept**: Use the generated message.
+   - **Edit**: Modify the message in your terminal editor.
+   - **Regenerate**: Ask AI to try again for a different result.
+   - **Cancel**: Abort the commit/generation.
+
+### Generate a Commit Message
+
+```bash
+# Generate and apply commit message (interactive)
+commit-gen generate
+
+# Skip confirmation/prompt
+commit-gen generate --no-confirm
+commit-gen generate -n
+
+# Preview without applying
+commit-gen generate --dry-run
 ```
 
 The tool will analyze your staged changes and generate a descriptive commit message automatically.
@@ -217,9 +264,10 @@ opencode:
 
 generation:
   style: conventional    # conventional, imperative, detailed
+  confirm: true          # prompt to confirm/edit message before committing
   model:
-    provider: google
-    model_id: antigravity-gemini-3-pro
+    provider: opencode
+    model_id: gpt-5-nano
 
 cache:
   enabled: true          # server mode only
@@ -227,7 +275,7 @@ cache:
 
 git:
   staged_only: true
-  editor: cat
+  editor: ""               # editor for commit messages (defaults to $EDITOR or vim)
   max_diff_size: 32768   # bytes before summarizing (32KB default)
 ```
 
