@@ -1,6 +1,6 @@
 # commit-gen
 
-A CLI tool that generates descriptive commit messages using OpenCode's AI capabilities. Simply run `git commit -m ""` and let AI analyze your staged changes to create meaningful commit messages.
+A CLI tool that generates descriptive commit messages using OpenCode's AI capabilities. Simply run `git commit` and let AI analyze your staged changes to create meaningful commit messages.
 
 ## Features
 
