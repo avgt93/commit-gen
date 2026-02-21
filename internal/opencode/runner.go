@@ -75,7 +75,11 @@ func (r *Runner) Generate(prompt string, model *Model) (string, error) {
 		return "", fmt.Errorf("opencode run failed: %w - %s", err, stderr.String())
 	}
 
-	return filterOutput(stdout.String()), nil
+	result := filterOutput(stdout.String())
+	if result == "" {
+		return "", fmt.Errorf("opencode returned no usable output (output may have been filtered as noise)")
+	}
+	return result, nil
 }
 
 /**
