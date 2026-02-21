@@ -24,6 +24,10 @@ install: build
 	@echo "Installing $(BINARY_NAME) to /usr/local/bin..."
 	@sudo cp $(BINARY_NAME) /usr/local/bin/
 
+uninstall:
+	@echo "Uninstalling $(BINARY_NAME)..."
+	@sudo rm -f /usr/local/bin/$(BINARY_NAME)
+
 clean:
 	@echo "Cleaning..."
 	$(GO) clean

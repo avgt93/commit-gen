@@ -42,6 +42,13 @@ var uninstallCmd = &cobra.Command{
 	RunE:  runUninstall,
 }
 
+var reinstallCmd = &cobra.Command{
+	Use:   "reinstall",
+	Short: "Reinstall the git hook",
+	Long:  `Reinstalls the prepare-commit-msg git hook in the current repository.`,
+	RunE:  runReinstall,
+}
+
 var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Manage configuration",
@@ -262,6 +269,15 @@ func runUninstall(cmd *cobra.Command, args []string) error {
 	}
 	color.Green("✓ Git hook removed successfully")
 	return nil
+}
+
+// runReinstall reinstalls the git hook.
+func runReinstall(cmd *cobra.Command, args []string) error {
+	if err := hook.Uninstall(); err != nil {
+		color.Red("Error: %v", err)
+		return err
+	}
+	return runInstall(cmd, args)
 }
 
 // runConfig displays the current configuration.
