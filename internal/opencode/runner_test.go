@@ -133,3 +133,59 @@ func TestMultipleRunnerInstances(t *testing.T) {
 
 	t.Log("✓ Multiple runner instances created with different timeouts")
 }
+
+/**
+ * TestFilterOutput verifies that filterOutput removes auto-update-checker messages.
+ */
+func TestFilterOutput(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "no noise",
+			input:    "Add user authentication feature",
+			expected: "Add user authentication feature",
+		},
+		{
+			name:     "auto-update-checker prefix",
+			input:    "[auto-update-checker] Package removed: /path/to/package\nAdd user authentication feature",
+			expected: "Add user authentication feature",
+		},
+		{
+			name:     "multiple auto-update-checker lines",
+			input:    "[auto-update-checker] Checking for updates...\n[auto-update-checker] Package removed: /path/to/package\nFix bug in login handler",
+			expected: "Fix bug in login handler",
+		},
+		{
+			name:     "auto-update-checker at end",
+			input:    "Refactor database queries\n[auto-update-checker] Update available",
+			expected: "Refactor database queries",
+		},
+		{
+			name:     "only auto-update-checker",
+			input:    "[auto-update-checker] Some message",
+			expected: "",
+		},
+		{
+			name:     "empty input",
+			input:    "",
+			expected: "",
+		},
+		{
+			name:     "whitespace handling",
+			input:    "\n[auto-update-checker] Noise\n\nUpdate README  \n",
+			expected: "Update README",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := filterOutput(tt.input)
+			if result != tt.expected {
+				t.Errorf("filterOutput() = %q, want %q", result, tt.expected)
+			}
+		})
+	}
+}

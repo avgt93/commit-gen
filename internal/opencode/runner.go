@@ -75,5 +75,26 @@ func (r *Runner) Generate(prompt string, model *Model) (string, error) {
 		return "", fmt.Errorf("opencode run failed: %w - %s", err, stderr.String())
 	}
 
-	return strings.TrimSpace(stdout.String()), nil
+	return filterOutput(stdout.String()), nil
+}
+
+/**
+ * filterOutput removes noise from opencode output such as auto-update messages.
+ *
+ * @param output - The raw output from opencode
+ * @returns The cleaned output with noise lines removed
+ */
+func filterOutput(output string) string {
+	var filtered []string
+	lines := strings.Split(output, "\n")
+
+	for _, line := range lines {
+		// Skip auto-update checker messages
+		if strings.HasPrefix(line, "[auto-update-checker]") {
+			continue
+		}
+		filtered = append(filtered, line)
+	}
+
+	return strings.TrimSpace(strings.Join(filtered, "\n"))
 }
